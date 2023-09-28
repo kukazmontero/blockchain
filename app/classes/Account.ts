@@ -47,12 +47,12 @@ class Cuenta {
   }
 }
 
-const miCuenta = new Cuenta();
-miCuenta.generarMnemonica();
-miCuenta.generarDireccion();
-miCuenta.generarClaves();
+// const miCuenta = new Cuenta();
+// miCuenta.generarMnemonica();
+// miCuenta.generarDireccion();
+// miCuenta.generarClaves();
 
-console.log('Mnemónica:', miCuenta.obtenerMnemonica());
-console.log('Dirección:', miCuenta.obtenerDireccion());
-console.log('Clave Privada:', miCuenta.obtenerClavePrivada());
-console.log('Clave Pública:', miCuenta.obtenerClavePublica());
+// console.log('Mnemónica:', miCuenta.obtenerMnemonica());
+// console.log('Dirección:', miCuenta.obtenerDireccion());
+// console.log('Clave Privada:', miCuenta.obtenerClavePrivada());
+// console.log('Clave Pública:', miCuenta.obtenerClavePublica());
