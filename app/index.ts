@@ -3,6 +3,7 @@ import { Block } from "./classes/Block";
 import { Level } from "level";
 
 const db = new Level('db', { valueEncoding: 'json' });
+const n = 5; //Transacciones por bloque
 
 const generateBlock = (index: number, previousHash: string, transactions: Transaction[], nonce: number): Block => {
     return new Block( index, Date.now(), transactions, previousHash, nonce );
@@ -28,27 +29,86 @@ const loadBlock = async (db: any, index: number): Promise<Block | null> => {
     }
 }
 
+const printBlocks = async () => {
+    const totalBlocks = await getIndex(db);
+
+    for (let i = 0; i < totalBlocks; i++) {
+        const block = await loadBlock(db, i);
+
+        if (block) {
+            console.log(`Bloque ${block.index}:`);
+            console.log(`Índice: ${block.index}`);
+            console.log(`Marca de tiempo: ${new Date(block.timestamp).toLocaleString()}`);
+            console.log(`Hash anterior: ${block.previousHash}`);
+            console.log(`Nonce: ${block.nonce}`);
+            
+            console.log("Transacciones:");
+            block.transactions.forEach((transaction, index) => {
+                console.log(`  Transacción ${index + 1}:`);
+                console.log(`    Remitente: ${transaction.sender}`);
+                console.log(`    Destinatario: ${transaction.recipient}`);
+                console.log(`    Monto: ${transaction.amount}`);
+                //console.log(`    Hash de la Transacción: ${}`);
+            });
+
+            console.log("\n");
+        } else {
+            console.log(`Bloque ${i} no encontrado.`);
+        }
+    }
+};
+
+
 const main = async () => {
-    const block1 = generateBlock( await getIndex(db), "", [new Transaction("Bob", "Ana", 50), new Transaction("Eli", "bet", 100)], 13010390123 );
-    await saveBlock(db, block1);
-    const block_response1 = await loadBlock(db, 0);
-    console.log(JSON.stringify(block_response1));
+    //Bloque de Origen
+    const genesisBlock = generateBlock(await getIndex(db), "", [new Transaction("Alice", "Bob", 100)], 13010390123);
+    await saveBlock(db, genesisBlock);
+    console.log("Bloque origen creado!");
 
-    const block2 = generateBlock( await getIndex(db), (block_response1?.hash as string), [new Transaction("Bob", "Ana", 50), new Transaction("Eli", "bet", 100)], 13010390123 );
-    await saveBlock(db, block2);
-    const block_response2 = await loadBlock(db, 1);
-    console.log(JSON.stringify(block_response2));
+    //---
 
-    const block3 = generateBlock( await getIndex(db), (block_response2?.hash as string), [new Transaction("Bob", "Ana", 50), new Transaction("Eli", "bet", 100)], 13010390123 );
-    await saveBlock(db, block3);
-    const block_response3 = await loadBlock(db, 2);
-    console.log(JSON.stringify(block_response3));
+    //Transacciones
+    const transactions = [
+        new Transaction("Bob", "Ana", 50),
+        new Transaction("David", "Lukas", 100),
+        new Transaction("Gabriel", "Rodrigo", 75),
+        new Transaction("Benjamin", "Abel", 30),
+        new Transaction("Bob", "Ana", 20),
+        new Transaction("David", "Lukas", 10),
+        new Transaction("Gabriel", "Rodrigo", 5),
+        new Transaction("Benjamin", "Abel", 15),
+        new Transaction("Bob", "Ana", 40),
+        new Transaction("David", "Lukas", 25),
+        new Transaction("Gabriel", "Rodrigo", 60),
+        new Transaction("Benjamin", "Abel", 35),
+        new Transaction("Bob", "Ana", 55),
+        new Transaction("David", "Lukas", 90),
+        new Transaction("Gabriel", "Rodrigo", 70),
+        new Transaction("Benjamin", "Abel", 45),
+        new Transaction("Bob", "Ana", 80),
+        new Transaction("David", "Lukas", 10)
+    ];
 
-    const block4 = generateBlock( await getIndex(db), (block_response3?.hash as string), [new Transaction("Bob", "Ana", 50), new Transaction("Eli", "bet", 100)], 13010390123 );
-    await saveBlock(db, block4);
-    const block_response4 = await loadBlock(db, 3);
-    console.log(JSON.stringify(block_response4));
-    
+
+    let ArregloDeTransacciones: Transaction[] = [];
+
+    for (let i = 0; i < transactions.length; i++) {
+        ArregloDeTransacciones.push(transactions[i]);
+
+        //Cuando el arreglo de transacciones sea igual a n, Ó sea la ultima iteracion, entonces 
+        if (ArregloDeTransacciones.length === n || i === transactions.length - 1) {
+            const previousBlock = await loadBlock(db, await getIndex(db) - 1);
+            const newBlock = generateBlock(await getIndex(db), previousBlock?.hash || "", ArregloDeTransacciones, 13010390123);
+            await saveBlock(db, newBlock);
+            //console.log(`Bloque ${newBlock.index} creado:`);
+
+            //Limpio el arreglo de transacciones
+            ArregloDeTransacciones = [];
+        }
+    }
+
+    console.log("\nBloques Almacenados:\n");
+    await printBlocks();
 }
 
 main();
