@@ -29,22 +29,22 @@ const loadBlock = async (db: any, index: number): Promise<Block | null> => {
 }
 
 const main = async () => {
-    const block1 = generateBlock( await getIndex(db), "aaa111", [new Transaction("Bob", "Ana", 50), new Transaction("Eli", "bet", 100)], 13010390123 );
+    const block1 = generateBlock( await getIndex(db), "", [new Transaction("Bob", "Ana", 50), new Transaction("Eli", "bet", 100)], 13010390123 );
     await saveBlock(db, block1);
     const block_response1 = await loadBlock(db, 0);
     console.log(JSON.stringify(block_response1));
 
-    const block2 = generateBlock( await getIndex(db), "aaa111", [new Transaction("Bob", "Ana", 50), new Transaction("Eli", "bet", 100)], 13010390123 );
+    const block2 = generateBlock( await getIndex(db), (block_response1?.hash as string), [new Transaction("Bob", "Ana", 50), new Transaction("Eli", "bet", 100)], 13010390123 );
     await saveBlock(db, block2);
     const block_response2 = await loadBlock(db, 1);
     console.log(JSON.stringify(block_response2));
 
-    const block3 = generateBlock( await getIndex(db), "aaa111", [new Transaction("Bob", "Ana", 50), new Transaction("Eli", "bet", 100)], 13010390123 );
+    const block3 = generateBlock( await getIndex(db), (block_response2?.hash as string), [new Transaction("Bob", "Ana", 50), new Transaction("Eli", "bet", 100)], 13010390123 );
     await saveBlock(db, block3);
     const block_response3 = await loadBlock(db, 2);
     console.log(JSON.stringify(block_response3));
 
-    const block4 = generateBlock( await getIndex(db), "aaa111", [new Transaction("Bob", "Ana", 50), new Transaction("Eli", "bet", 100)], 13010390123 );
+    const block4 = generateBlock( await getIndex(db), (block_response3?.hash as string), [new Transaction("Bob", "Ana", 50), new Transaction("Eli", "bet", 100)], 13010390123 );
     await saveBlock(db, block4);
     const block_response4 = await loadBlock(db, 3);
     console.log(JSON.stringify(block_response4));
