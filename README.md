@@ -8,6 +8,7 @@
 
 ## Tecnologías del proyecto
 * NodeJS
+* Typescript
 
 ## Montaje del ambiente
 
