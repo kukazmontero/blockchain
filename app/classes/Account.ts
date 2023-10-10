@@ -1,6 +1,6 @@
 import { ethers } from 'ethers';
 
-class Cuenta {
+export class Cuenta {
   private mnemonica: string;
   private addr: string | undefined;
   private clavePrivada: string | undefined;
@@ -46,6 +46,8 @@ class Cuenta {
     return this.clavePublica;
   }
 }
+
+
 
 // const miCuenta = new Cuenta();
 // miCuenta.generarMnemonica();
