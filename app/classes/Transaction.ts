@@ -6,13 +6,15 @@ export class Transaction {
     amount: number;
     signature: string;
     valido: boolean;
+    nonce: number;
 
-    constructor(sender: string, recipient: string, amount: number, privateKey?: string, publicKey?: string) {
+    constructor(sender: string, recipient: string, amount: number, nonce: number, privateKey?: string, publicKey?: string) {
         this.sender = sender;
         this.recipient = recipient;
         this.amount = amount;
         this.signature = this.signTransaction(privateKey); // Firmar la transacción al crearla
         this.valido = this.verifySignature(publicKey); // Firmar la transacción al crearla
+        this.nonce = nonce;
     }
 
     signTransaction(privateKey?: string): string {

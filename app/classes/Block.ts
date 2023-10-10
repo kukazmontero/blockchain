@@ -7,21 +7,19 @@ export class Block {
     public transactions: Transaction[];
     public previousHash: string;
     public hash: string;
-    public nonce: number;
+    
 
-    constructor(index: number, timestamp: number, transactions: Transaction[], previousHash: string, nonce: number){
+    constructor(index: number, timestamp: number, transactions: Transaction[], previousHash: string){
         this.index = index;
         this.timestamp = timestamp;
         this.transactions = transactions;
         this.previousHash = previousHash;
-        this.nonce = nonce;
         this.hash = this.calculateHash();
-
     }
 
     calculateHash = (): string => {
     
-        let data = `${this.index}${this.timestamp}${this.previousHash}${this.nonce}`;
+        let data = `${this.index}${this.timestamp}${this.previousHash}`;
     
         this.transactions.forEach((transaction) => {
             const {sender, recipient, amount} = transaction;

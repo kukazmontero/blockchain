@@ -6,8 +6,8 @@ import { Level } from "level";
 const db = new Level('db', { valueEncoding: 'json' });
 const n = 5; //Transacciones por bloque
 
-const generateBlock = (index: number, previousHash: string, transactions: Transaction[], nonce: number): Block => {
-    return new Block( index, Date.now(), transactions, previousHash, nonce );
+const generateBlock = (index: number, previousHash: string, transactions: Transaction[]): Block => {
+    return new Block( index, Date.now(), transactions, previousHash );
 };
 
 const getIndex = async (db: any) => {
@@ -41,7 +41,6 @@ const printBlocks = async () => {
             console.log(`Índice: ${block.index}`);
             console.log(`Marca de tiempo: ${new Date(block.timestamp).toLocaleString()}`);
             console.log(`Hash anterior: ${block.previousHash}`);
-            console.log(`Nonce: ${block.nonce}`);
             
             console.log("Transacciones:");
             block.transactions.forEach((transaction, index) => {
@@ -103,7 +102,7 @@ const main = async () => {
 
 
     //Bloque de Origen
-    const genesisBlock = generateBlock(await getIndex(db), "", [new Transaction("Alice", "Bob", 100, privateKeyCuentaAlice, publicKeyCuentaAlice)], 13010390123);
+    const genesisBlock = generateBlock(await getIndex(db), "", [new Transaction("Alice", "Bob", 100, 111, privateKeyCuentaAlice, publicKeyCuentaAlice)]);
     await saveBlock(db, genesisBlock);
     console.log("Bloque origen creado!");
 
@@ -111,30 +110,27 @@ const main = async () => {
     
 
     const transactions = [
-        new Transaction("Bob", "Ana", 50, privateKeyCuentaBob, publicKeyCuentaBob),
-        new Transaction("David", "Lukas", 100, privateKeyCuentaDavid, publicKeyCuentaDavid),
-        new Transaction("Gabriel", "Rodrigo", 75, privateKeyCuentaGabriel, publicKeyCuentaGabriel),
-        new Transaction("Benjamin", "Abel", 30, privateKeyCuentaBenjamin, publicKeyCuentaBenjamin),
-        new Transaction("Bob", "Ana", 20,privateKeyCuentaBob, publicKeyCuentaBob),
-        new Transaction("David", "Lukas", 10, privateKeyCuentaDavid, publicKeyCuentaDavid),
-        new Transaction("Gabriel", "Rodrigo", 5, privateKeyCuentaGabriel, publicKeyCuentaGabriel),
-        new Transaction("Benjamin", "Abel", 15, privateKeyCuentaBenjamin, publicKeyCuentaBenjamin),
-        new Transaction("Bob", "Ana", 40,privateKeyCuentaBob, publicKeyCuentaBob),
-        new Transaction("David", "Lukas", 25, privateKeyCuentaDavid, publicKeyCuentaDavid),
-        new Transaction("Gabriel", "Rodrigo", 60, privateKeyCuentaGabriel, publicKeyCuentaGabriel),
-        new Transaction("Benjamin", "Abel", 35, privateKeyCuentaBenjamin, publicKeyCuentaBenjamin),
-        new Transaction("Bob", "Ana", 55, privateKeyCuentaBob, publicKeyCuentaBob),
-        new Transaction("David", "Lukas", 90, privateKeyCuentaDavid, publicKeyCuentaDavid),
-        new Transaction("Gabriel", "Rodrigo", 70, privateKeyCuentaGabriel, publicKeyCuentaGabriel),
-        new Transaction("Benjamin", "Abel", 45,privateKeyCuentaBenjamin, publicKeyCuentaBenjamin),
-        new Transaction("Bob", "Ana", 80, privateKeyCuentaBob, publicKeyCuentaBob),
-        new Transaction("David", "Lukas", 10, privateKeyCuentaDavid, publicKeyCuentaDavid)
+        new Transaction("Bob", "Ana", 50, 111, privateKeyCuentaBob, publicKeyCuentaBob),
+        new Transaction("David", "Lukas", 100, 111, privateKeyCuentaDavid, publicKeyCuentaDavid),
+        new Transaction("Gabriel", "Rodrigo", 75, 111, privateKeyCuentaGabriel, publicKeyCuentaGabriel),
+        new Transaction("Benjamin", "Abel", 30, 111, privateKeyCuentaBenjamin, publicKeyCuentaBenjamin),
+        new Transaction("Bob", "Ana", 20,111, privateKeyCuentaBob, publicKeyCuentaBob),
+        new Transaction("David", "Lukas", 10, 111, privateKeyCuentaDavid, publicKeyCuentaDavid),
+        new Transaction("Gabriel", "Rodrigo", 5, 111, privateKeyCuentaGabriel, publicKeyCuentaGabriel),
+        new Transaction("Benjamin", "Abel", 15, 111, privateKeyCuentaBenjamin, publicKeyCuentaBenjamin),
+        new Transaction("Bob", "Ana", 40,111, privateKeyCuentaBob, publicKeyCuentaBob),
+        new Transaction("David", "Lukas", 25, 111, privateKeyCuentaDavid, publicKeyCuentaDavid),
+        new Transaction("Gabriel", "Rodrigo", 60, 111, privateKeyCuentaGabriel, publicKeyCuentaGabriel),
+        new Transaction("Benjamin", "Abel", 35, 111, privateKeyCuentaBenjamin, publicKeyCuentaBenjamin),
+        new Transaction("Bob", "Ana", 55, 111, privateKeyCuentaBob, publicKeyCuentaBob),
+        new Transaction("David", "Lukas", 90, 111, privateKeyCuentaDavid, publicKeyCuentaDavid),
+        new Transaction("Gabriel", "Rodrigo", 70, 111, privateKeyCuentaGabriel, publicKeyCuentaGabriel),
+        new Transaction("Benjamin", "Abel", 45,111, privateKeyCuentaBenjamin, publicKeyCuentaBenjamin),
+        new Transaction("Bob", "Ana", 80, 111, privateKeyCuentaBob, publicKeyCuentaBob),
+        new Transaction("David", "Lukas", 10, 111, privateKeyCuentaDavid, publicKeyCuentaDavid)
     ];
 
-
     let ArregloDeTransacciones: Transaction[] = [];
-
-    
 
     for (let i = 0; i < transactions.length; i++) {
         ArregloDeTransacciones.push(transactions[i]);
@@ -142,7 +138,7 @@ const main = async () => {
         //Cuando el arreglo de transacciones sea igual a n, Ó sea la ultima iteracion, entonces 
         if (ArregloDeTransacciones.length === n || i === transactions.length - 1) {
             const previousBlock = await loadBlock(db, await getIndex(db) - 1);
-            const newBlock = generateBlock(await getIndex(db), previousBlock?.hash || "", ArregloDeTransacciones, 13010390123);
+            const newBlock = generateBlock(await getIndex(db), previousBlock?.hash || "", ArregloDeTransacciones);
             await saveBlock(db, newBlock);
             //console.log(`Bloque ${newBlock.index} creado:`);
 
