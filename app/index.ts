@@ -1,5 +1,6 @@
 import { Transaction } from "./classes/Transaction";
 import { Block } from "./classes/Block";
+import { Cuenta } from "./classes/Account";
 import { Level } from "level";
 
 const db = new Level('db', { valueEncoding: 'json' });
@@ -44,11 +45,13 @@ const printBlocks = async () => {
             
             console.log("Transacciones:");
             block.transactions.forEach((transaction, index) => {
-                console.log(`  Transacción ${index + 1}:`);
+                console.log(`    Transacción ${index + 1}:`);
                 console.log(`    Remitente: ${transaction.sender}`);
                 console.log(`    Destinatario: ${transaction.recipient}`);
                 console.log(`    Monto: ${transaction.amount}`);
-                //console.log(`    Hash de la Transacción: ${}`);
+                console.log(`    Firma de la Transacción ${index + 1}: ${transaction.signature}`);
+
+                console.log(`Firma válida: ${transaction.valido}`);
             });
 
             console.log("\n");
@@ -58,39 +61,80 @@ const printBlocks = async () => {
     }
 };
 
+const generateUniqueAccounts = (numberOfAccounts: number): Cuenta[] => {
+    const accounts: Cuenta[] = [];
+
+    for (let i = 0; i < numberOfAccounts; i++) {
+        const account = new Cuenta();
+        account.generarMnemonica();
+        account.generarDireccion();
+        account.generarClaves();
+        accounts.push(account);
+
+    }
+
+    return accounts;
+};
 
 const main = async () => {
+    const numberOfAccounts = 5; // Número de usuarios participantes
+    const accounts = generateUniqueAccounts(numberOfAccounts);
+    // Acceder a las claves de la primera cuenta
+    const primeraCuenta = accounts[0];
+    const privateKeyCuentaAlice = primeraCuenta.obtenerClavePrivada();
+    const publicKeyCuentaAlice = primeraCuenta.obtenerClavePublica();
+
+    // Acceder a las claves de la segunda cuenta
+    const segundaCuenta = accounts[1];
+    const privateKeyCuentaBob = segundaCuenta.obtenerClavePrivada();
+    const publicKeyCuentaBob = segundaCuenta.obtenerClavePublica();
+    // Acceder a las claves de la tercera cuenta
+    const terceraCuenta = accounts[2];
+    const privateKeyCuentaDavid = terceraCuenta.obtenerClavePrivada();
+    const publicKeyCuentaDavid = terceraCuenta.obtenerClavePublica();
+    // Acceder a las claves de la cuarta cuenta
+    const cuartaCuenta = accounts[3];
+    const privateKeyCuentaGabriel = cuartaCuenta.obtenerClavePrivada();
+    const publicKeyCuentaGabriel = cuartaCuenta.obtenerClavePublica();
+    // Acceder a las claves de la quinta cuenta
+    const quintaCuenta = accounts[4];
+    const privateKeyCuentaBenjamin = quintaCuenta.obtenerClavePrivada();
+    const publicKeyCuentaBenjamin = quintaCuenta.obtenerClavePublica();
+
+
     //Bloque de Origen
-    const genesisBlock = generateBlock(await getIndex(db), "", [new Transaction("Alice", "Bob", 100)], 13010390123);
+    const genesisBlock = generateBlock(await getIndex(db), "", [new Transaction("Alice", "Bob", 100, privateKeyCuentaAlice, publicKeyCuentaAlice)], 13010390123);
     await saveBlock(db, genesisBlock);
     console.log("Bloque origen creado!");
 
-    //---
 
-    //Transacciones
+    
+
     const transactions = [
-        new Transaction("Bob", "Ana", 50),
-        new Transaction("David", "Lukas", 100),
-        new Transaction("Gabriel", "Rodrigo", 75),
-        new Transaction("Benjamin", "Abel", 30),
-        new Transaction("Bob", "Ana", 20),
-        new Transaction("David", "Lukas", 10),
-        new Transaction("Gabriel", "Rodrigo", 5),
-        new Transaction("Benjamin", "Abel", 15),
-        new Transaction("Bob", "Ana", 40),
-        new Transaction("David", "Lukas", 25),
-        new Transaction("Gabriel", "Rodrigo", 60),
-        new Transaction("Benjamin", "Abel", 35),
-        new Transaction("Bob", "Ana", 55),
-        new Transaction("David", "Lukas", 90),
-        new Transaction("Gabriel", "Rodrigo", 70),
-        new Transaction("Benjamin", "Abel", 45),
-        new Transaction("Bob", "Ana", 80),
-        new Transaction("David", "Lukas", 10)
+        new Transaction("Bob", "Ana", 50, privateKeyCuentaBob, publicKeyCuentaBob),
+        new Transaction("David", "Lukas", 100, privateKeyCuentaDavid, publicKeyCuentaDavid),
+        new Transaction("Gabriel", "Rodrigo", 75, privateKeyCuentaGabriel, publicKeyCuentaGabriel),
+        new Transaction("Benjamin", "Abel", 30, privateKeyCuentaBenjamin, publicKeyCuentaBenjamin),
+        new Transaction("Bob", "Ana", 20,privateKeyCuentaBob, publicKeyCuentaBob),
+        new Transaction("David", "Lukas", 10, privateKeyCuentaDavid, publicKeyCuentaDavid),
+        new Transaction("Gabriel", "Rodrigo", 5, privateKeyCuentaGabriel, publicKeyCuentaGabriel),
+        new Transaction("Benjamin", "Abel", 15, privateKeyCuentaBenjamin, publicKeyCuentaBenjamin),
+        new Transaction("Bob", "Ana", 40,privateKeyCuentaBob, publicKeyCuentaBob),
+        new Transaction("David", "Lukas", 25, privateKeyCuentaDavid, publicKeyCuentaDavid),
+        new Transaction("Gabriel", "Rodrigo", 60, privateKeyCuentaGabriel, publicKeyCuentaGabriel),
+        new Transaction("Benjamin", "Abel", 35, privateKeyCuentaBenjamin, publicKeyCuentaBenjamin),
+        new Transaction("Bob", "Ana", 55, privateKeyCuentaBob, publicKeyCuentaBob),
+        new Transaction("David", "Lukas", 90, privateKeyCuentaDavid, publicKeyCuentaDavid),
+        new Transaction("Gabriel", "Rodrigo", 70, privateKeyCuentaGabriel, publicKeyCuentaGabriel),
+        new Transaction("Benjamin", "Abel", 45,privateKeyCuentaBenjamin, publicKeyCuentaBenjamin),
+        new Transaction("Bob", "Ana", 80, privateKeyCuentaBob, publicKeyCuentaBob),
+        new Transaction("David", "Lukas", 10, privateKeyCuentaDavid, publicKeyCuentaDavid)
     ];
 
 
     let ArregloDeTransacciones: Transaction[] = [];
+
+    
 
     for (let i = 0; i < transactions.length; i++) {
         ArregloDeTransacciones.push(transactions[i]);
