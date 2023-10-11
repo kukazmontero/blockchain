@@ -40,3 +40,13 @@ Para esto simplemente ejecutar el siguiente comando, que creará la db con los b
 ```bash
 node index.js
 ```
+## Estructura del sistema
+### Clases
+- Account
+  - Clase compuesta por atributos como: Mnemonica, address, privateKey y una publicKey. Utilizamos la libreria _ethers_ la cual nos permite interactuar con el ecosistema del blockchain ethereum, esto para poder generar una billetera o _wallet_ y así poder obtener todos los atributos mencionados anteriormente.
+- Transaction
+  - Clase compuesta por atributos como: sender, recipient, amount, signature, valido y nonce, la cual permitirá registrar transacciones entre dos entidades de la clase Account o cuentas. Esta debe ser firmada con la clave privada de la cuenta que realiza la transacción, dicha firma además puede ser verificada con la clave publica de la misma cuenta.
+- Block
+  - Clase compuesta por atributos como: index, timestamp, transactions, previousHash y hash, la cual almacenará un total de 5 transacciones por bloque.
+### Main
+El programa Main del proyecto consta de la creación de un total de 5 entidades account o cuentas para poder simular transacciones. Se crea un bloque inicial el cual tendrá solo una transacción Alice 🡆 Bob. Pasamos a generar un arreglo de distintas combinaciones de transacciones para posteriormente ir registrandolas en los bloques hasta alcanzar un maximo de 5 transacciones por bloque.
