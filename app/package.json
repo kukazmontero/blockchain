@@ -1,20 +1,40 @@
 {
-  "name": "blockchain",
+  "name": "",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "type": "commonjs",
+  "license": "AGPL-version-3.0",
+  "private": false,
+  "engines": {
+    "node": ">= 14.0.0",
+    "npm": ">= 6.0.0"
   },
-  "author": "",
-  "license": "ISC",
+  "homepage": "",
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "bugs": "",
+  "keywords": [],
+  "author": {
+    "name": "",
+    "email": "",
+    "url": ""
+  },
+  "contributors": [],
+  "scripts": {
+    "dev": "",
+    "test": ""
+  },
   "dependencies": {
-    "crypto-js": "^4.1.1",
-    "ethers": "^6.7.1",
-    "level": "^8.0.0"
+    "crypto-js": "^4.2.0",
+    "ethers": "^5.7.2",
+    "level": "^8.0.0",
+    "readline-sync": "^1.4.10"
   },
   "devDependencies": {
-    "@types/level": "^6.0.1",
+    "@types/level": "^6.0.3",
     "typescript": "^5.2.2"
   }
 }
