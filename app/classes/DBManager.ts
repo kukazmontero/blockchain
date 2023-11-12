@@ -55,25 +55,25 @@ export class DBBlocks {
         const block = await this.loadBlock(i);
 
         if (block) {
-            console.log(`Bloque ${block.index}:`);
-            console.log(`Índice: ${block.index}`);
-            console.log(`Marca de tiempo: ${new Date(block.timestamp).toLocaleString()}`);
-            console.log(`Hash anterior: ${block.previousHash}`);
+            console.log(`Block ${block.index}:`);
+            console.log(`Index: ${block.index}`);
+            console.log(`Timestamp: ${new Date(block.timestamp).toLocaleString()}`);
+            console.log(`Previous Hash: ${block.previousHash}`);
             
-            console.log("Transacciones:");
+            console.log("Transactions:");
             block.transactions.forEach((transaction, index) => {
-                console.log(`    Transacción ${index + 1}:`);
-                console.log(`    Remitente: ${transaction.sender}`);
-                console.log(`    Destinatario: ${transaction.recipient}`);
-                console.log(`    Monto: ${transaction.amount}`);
-                console.log(`    Firma de la Transacción ${index + 1}: ${transaction.signature}`);
+                console.log(`    Transaction ${index + 1}:`);
+                console.log(`    Sender: ${transaction.sender}`);
+                console.log(`    Receiver: ${transaction.recipient}`);
+                console.log(`    Amount: ${transaction.amount}`);
+                console.log(`    Signature of the transaction ${index + 1}: ${transaction.signature}`);
 
-                console.log(`Firma válida: ${transaction.valido}`);
+                console.log(`    Valid Signature: ${transaction.valido}`);
             });
 
             console.log("\n");
         } else {
-            console.log(`Bloque ${i} no encontrado.`);
+            console.log(`Block ${i} no find.`);
         }
     }
   }
