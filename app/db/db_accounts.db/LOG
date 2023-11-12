@@ -1,6 +1,0 @@
-2023/11/11-19:53:23.642 6b24 Recovering log #49
-2023/11/11-19:53:23.642 6b24 Level-0 table #51: started
-2023/11/11-19:53:23.645 6b24 Level-0 table #51: 626 bytes OK
-2023/11/11-19:53:23.651 6b24 Delete type=0 #49
-2023/11/11-19:53:23.651 6b24 Delete type=3 #47
-2023/11/11-19:53:23.663 6bf8 Moved #48 to level-1 638 bytes OK: files[ 3 8 0 0 0 0 0 ]
