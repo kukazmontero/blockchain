@@ -1,0 +1,21 @@
+{
+  "name": "libp2p-chat",
+  "version": "1.0.0",
+  "description": "Simple libp2p chat example",
+  "main": "index.js",
+  "scripts": {
+    "start-listener": "node node-listener.js",
+    "start-sender": "node node-sender.js"
+  },
+  "author": "Tu Nombre",
+  "license": "MIT",
+  "dependencies": {
+    "peer-id": "^2.3.0",
+    "libp2p": "^0.32.0",
+    "libp2p-mplex": "^0.10.0",
+    "libp2p-noise": "^4.0.0",
+    "libp2p-tcp": "^0.16.0",
+    "libp2p-websockets": "^0.16.2",
+    "multiaddr": "^9.0.0"
+  }
+}
