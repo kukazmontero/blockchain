@@ -98,9 +98,13 @@ export class DBAccounts {
     const account = new Account(name);
     const accountData = JSON.stringify( account );
     await this.db.put(account.address, accountData);
-    return account.address;
+    return accountData;
   }
-
+  async registerAccountnotNode(new_account: string): Promise<string> {
+    const accountData = new_account;
+    await this.db.put(JSON.parse(new_account).address, accountData);
+    return JSON.parse(accountData).address;
+  }
   async getAccountByAddress(address: string): Promise<Account | null> {
     try {
       return await JSON.parse(await this.db.get(address));

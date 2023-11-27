@@ -2,7 +2,7 @@ import { tcp } from '@libp2p/tcp';
 import { multiaddr } from '@multiformats/multiaddr';
 import { pipe } from 'it-pipe';
 import all from 'it-all';
-import fs from 'fs';
+// import fs from 'fs';
 
 const port = process.argv[2];
 if (!port) {
@@ -30,6 +30,11 @@ class Node {
           all
         );
         console.log(`Received: ${values.toString()}`);
+        if(values.toString().split("-")[0] == '1'){
+          const name = values.toString().split("-")[1];
+          const new_acount = values.toString().split("-")[2];
+          console.log(await registerUsernotNode(db_accounts, new_acount));
+        }
       }
     });
 
@@ -37,12 +42,17 @@ class Node {
     console.log('Listening on', this.addr.toString());
 
     // Registrar este nodo
-    fs.appendFileSync('nodes.txt', `${this.addr.toString()}\n`);
+    // fs.appendFileSync('nodes.txt', `${this.addr.toString()}\n`);
   }
 }
 
 async function sendMessageToAll(message) {
-  const nodes = fs.readFileSync('nodes.txt', 'utf-8').split('\n').filter(Boolean);
+  // const nodes = fs.readFileSync('nodes.txt', 'utf-8').split('\n').filter(Boolean);
+  const nodes =  [
+    '/ip4/127.0.0.1/tcp/9000',
+    '/ip4/127.0.0.1/tcp/9001',
+    '/ip4/127.0.0.1/tcp/9002',
+  ]  
   const transport = tcp()();
   const upgrader = {
     upgradeInbound: async maConn => maConn,
@@ -87,6 +97,9 @@ const generateUniqueAccounts = (numberOfAccounts) => {
 const registerUser = async (db_accounts, name) => {
     return await db_accounts.registerAccount(name);
 };
+const registerUsernotNode = async (db_accounts, new_account) => {
+  return await db_accounts.registerAccountnotNode(new_account);
+}
 const db_blocks = new DBBlocks(`./db/db_blocks_${port}.db`);
 const db_accounts = new DBAccounts(`./db/db_accounts_${port}.db`);
 
@@ -111,17 +124,15 @@ process.stdin.on('data', async (data) => {
         case '1':
             const name = input.question('Enter name for account: ');
             const message = name.toString().trim();
-            //await sendMessageToAll(message);
             const aux = await registerUser(db_accounts, message);
-            const finalmessage = message + "-" + aux.toString().trim();
+            const finalmessage = "1-" + message + "-" + aux.toString().trim();
             await sendMessageToAll(finalmessage);
-            //await sendMessageToAll(await registerUser(db_accounts, message));
             break;
         case '2':
             const sender_address = input.question('Input address sender: ');
             const recipient_address = input.question('Input address recipient: ');
             const amount = parseInt(input.question('Input amount: '));
-            const content_transaction = sender_address + "-" + recipient_address + "-" + amount;
+            const content_transaction = "2-" + sender_address + "-" + recipient_address + "-" + amount;
             await sendMessageToAll(content_transaction);
 
             const sender = await db_accounts.getAccountByAddress(sender_address);

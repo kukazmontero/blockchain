@@ -18,6 +18,3 @@ export class Account {
     this.publickey = this.wallet.publicKey;
   }
 }
-
-// const account = new Account();
-// console.log(JSON.stringify(account));

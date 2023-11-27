@@ -3,10 +3,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Block = void 0;
 var crypto_js_1 = require("crypto-js");
 var Block = /** @class */ (function () {
-    function Block(index, timestamp, transactions, previousHash, nonce) {
+    function Block(index, timestamp, transactions, previousHash) {
         var _this = this;
         this.calculateHash = function () {
-            var data = "".concat(_this.index).concat(_this.timestamp).concat(_this.previousHash).concat(_this.nonce);
+            var data = "".concat(_this.index).concat(_this.timestamp).concat(_this.previousHash);
             _this.transactions.forEach(function (transaction) {
                 var sender = transaction.sender, recipient = transaction.recipient, amount = transaction.amount;
                 data += "".concat(sender).concat(recipient).concat(amount);
@@ -17,7 +17,6 @@ var Block = /** @class */ (function () {
         this.timestamp = timestamp;
         this.transactions = transactions;
         this.previousHash = previousHash;
-        this.nonce = nonce;
         this.hash = this.calculateHash();
     }
     return Block;

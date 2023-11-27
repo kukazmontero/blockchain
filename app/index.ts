@@ -23,6 +23,9 @@ const generateUniqueAccounts = (numberOfAccounts: number): Account[] => {
 const registerUser = async (db_accounts: DBAccounts, name: string): Promise<string> => {
     return await db_accounts.registerAccount(name);
 }
+const registerUsernotNode = async (db_accounts: DBAccounts, new_account: string): Promise<string> => {
+    return await db_accounts.registerAccountnotNode(new_account);
+}
 
 const main = async () => {
     const db_blocks = new DBBlocks("./db/db_blocks.db");
