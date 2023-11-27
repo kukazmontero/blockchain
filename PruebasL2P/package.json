@@ -31,6 +31,7 @@
     "@libp2p/tcp": "^8.0.13",
     "@multiformats/multiaddr": "^12.1.10",
     "it-all": "^3.0.4",
-    "it-pipe": "^3.0.1"
+    "it-pipe": "^3.0.1",
+    "readline-sync": "^1.4.10"
   }
 }
