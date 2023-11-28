@@ -100,6 +100,12 @@ export class DBAccounts {
     await this.db.put(account.address, accountData);
     return accountData;
   }
+  async registerAccount2(data: string): Promise<string> {
+    const account = JSON.parse(data);
+    const accountData = JSON.stringify( account );
+    await this.db.put(account.address, accountData);
+    return accountData;
+  }
   async registerAccountnotNode(new_account: string): Promise<string> {
     const accountData = new_account;
     await this.db.put(JSON.parse(new_account).address, accountData);
