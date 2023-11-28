@@ -118,13 +118,20 @@ class Node {
           all
         );
 
-        //console.log(`Received: ${values.toString()}`);
-        if(values.toString().split("-")[0] == '1'){
+
+
+        if(values.toString().split("_")[0]=== "newconnection" && port != values.toString().split("_")[1]){
+          await SyncContent(values.toString().split("_")[1]);
+
+
+
+        }
+        else if(values.toString().split("-")[0] == '1'){
           const new_acount = values.toString().split("-")[1];
           //console.log(new_acount)
           console.log(JSON.parse(await registerUser2(db_accounts, new_acount)));
         }
-        if(values.toString().split("-")[0] == '2'){
+        else if(values.toString().split("-")[0] == '2'){
           const block = JSON.parse(values.toString().split("-")[1]);
           console.log(block)
 
@@ -142,11 +149,14 @@ class Node {
           console.log(JSON.parse(await registerUser2(db_accounts, JSON.stringify(newcontent))));
 
         }
+
       }
     });
 
     await listener.listen(this.addr);
     console.log('Listening on', this.addr.toString());
+    startmessage = `newconnection_${port}`;
+    await sendFileToNode(startmessage);
     
     // Registrar este nodo
     fs.appendFileSync('nodes.txt', `${this.addr.toString()}\n`);
@@ -157,6 +167,11 @@ class Node {
       process.stdin.resume();
     });
   }
+}
+
+async function SyncContent(dest) {
+  await db_blocks.printBlocks();
+
 }
 
 async function sendFileToAllNodes(fileContent) {
@@ -189,6 +204,43 @@ async function sendFileToAllNodes(fileContent) {
     }
   }
 }
+async function sendFileToNode(fileContent) {
+  // Utilizar tu mecanismo de comunicación para enviar el archivo a todos los nodos
+  // Ejemplo:
+  const nodes = fs.readFileSync('nodes.txt', 'utf-8').split('\n').filter(Boolean);
+  // const nodes = [
+  //   '/ip4/127.0.0.1/tcp/9000',
+  //   '/ip4/127.0.0.1/tcp/9001',
+  //   '/ip4/127.0.0.1/tcp/9002',
+  // ];
+  const nodeAddr = nodes[0]
+  const portdest = nodeAddr.toString.split("/")[4];
+
+  if(fileContent.toString().split("_")[0]=== "newconnection" && portdest != fileContent.toString().split("_")[1]){
+    const transport = tcp()();
+    const upgrader = {
+      upgradeInbound: async maConn => maConn,
+      upgradeOutbound: async maConn => maConn
+    };
+
+      
+
+      const lastSlashIndex = nodeAddr.lastIndexOf('/');
+      const portNumber = nodeAddr.substring(lastSlashIndex + 1);
+      if(port != portNumber){
+        const addr = multiaddr(nodeAddr);
+        const socket = await transport.dial(addr, { upgrader });
+        await pipe(
+          [fileContent],
+          socket
+        );
+        console.log(`File sent to ${addr.toString()}`);
+      }
+
+
+  }
+
+}
 
 const node = new Node(port);
 node.start();
@@ -198,6 +250,7 @@ import { Block } from "../app/classes/Block.js";
 import { Account } from "../app/classes/Account.js";
 import { DBBlocks, DBAccounts } from "../app/classes/DBManager.js";
 import * as input from 'readline-sync';
+import { isAsyncFunction } from 'util/types';
 
 const generateBlock = (index, previousHash, transactions) => {
     return new Block(index, Date.now(), transactions, previousHash);
