@@ -2,7 +2,7 @@ import { tcp } from '@libp2p/tcp';
 import { multiaddr } from '@multiformats/multiaddr';
 import { pipe } from 'it-pipe';
 import all from 'it-all';
-// import fs from 'fs';
+import fs from 'fs';
 
 const port = process.argv[2];
 if (!port) {
@@ -29,11 +29,11 @@ class Node {
           socket,
           all
         );
-        console.log(`Received: ${values.toString()}`);
+        // console.log(`Received: ${values.toString()}`);
         if(values.toString().split("-")[0] == '1'){
           const name = values.toString().split("-")[1];
           const new_acount = values.toString().split("-")[2];
-          console.log(await registerUsernotNode(db_accounts, new_acount));
+          console.log("Cuenta "+name+" creada correctamente, ID: "+ await registerUsernotNode(db_accounts, new_acount));
         }
       }
     });
@@ -42,17 +42,17 @@ class Node {
     console.log('Listening on', this.addr.toString());
 
     // Registrar este nodo
-    // fs.appendFileSync('nodes.txt', `${this.addr.toString()}\n`);
+    fs.appendFileSync('nodes.txt', `${this.addr.toString()}\n`);
   }
 }
 
 async function sendMessageToAll(message) {
-  // const nodes = fs.readFileSync('nodes.txt', 'utf-8').split('\n').filter(Boolean);
-  const nodes =  [
-    '/ip4/127.0.0.1/tcp/9000',
-    '/ip4/127.0.0.1/tcp/9001',
-    '/ip4/127.0.0.1/tcp/9002',
-  ]  
+  const nodes = fs.readFileSync('nodes.txt', 'utf-8').split('\n').filter(Boolean);
+  // const nodes =  [
+  //   '/ip4/127.0.0.1/tcp/9000',
+  //   '/ip4/127.0.0.1/tcp/9001',
+  //   '/ip4/127.0.0.1/tcp/9002',
+  // ]  
   const transport = tcp()();
   const upgrader = {
     upgradeInbound: async maConn => maConn,
