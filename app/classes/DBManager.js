@@ -42,6 +42,24 @@ var Account_1 = require("./Account");
 var DBBlocks = /** @class */ (function () {
     function DBBlocks(dbPath) {
         var _this = this;
+        this.getTotalBlocks2 = function () { return __awaiter(_this, void 0, void 0, function () {
+            var block_data, block, _a;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
+                    case 0:
+                        _b.trys.push([0, 2, , 3]);
+                        return [4 /*yield*/, this.db.iterator().all()];
+                    case 1:
+                        block_data = _b.sent();
+                        block = JSON.stringify(block_data);
+                        return [2 /*return*/, block];
+                    case 2:
+                        _a = _b.sent();
+                        return [2 /*return*/, null];
+                    case 3: return [2 /*return*/];
+                }
+            });
+        }); };
         this.getLastBlock = function () { return __awaiter(_this, void 0, void 0, function () {
             var index, last_block_data, last_block, _a;
             return __generator(this, function (_b) {

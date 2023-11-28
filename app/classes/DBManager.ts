@@ -18,6 +18,16 @@ export class DBBlocks {
     }
   }
 
+  getTotalBlocks2= async (): Promise<String|null> => {
+      try {
+        const block_data = await this.db.iterator().all();
+        const block:String = JSON.stringify(block_data);
+        return block;
+      } catch {
+        return null;
+      }
+    }
+
   getLastBlock = async (): Promise<Block|null> => {
     try {
         const index = await this.getTotalBlocks();

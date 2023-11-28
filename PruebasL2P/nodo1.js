@@ -118,14 +118,18 @@ class Node {
           all
         );
 
-
-
-        if(values.toString().split("_")[0]=== "newconnection" && port != values.toString().split("_")[1]){
+        if(values.toString().split("_")[0] === "newconnection" && port != values.toString().split("_")[1]){
           await SyncContent(values.toString().split("_")[1]);
 
-
-
         }
+        else if (values.toString().split("_")[0] === "sync"){
+          const blocks = JSON.parse(values.toString().split("_")[1])
+          for(const block of blocks){
+            const addBlock = JSON.parse(block[1])
+            db_blocks.saveBlock(addBlock);
+          }
+        }
+
         else if(values.toString().split("-")[0] == '1'){
           const new_acount = values.toString().split("-")[1];
           //console.log(new_acount)
@@ -134,18 +138,14 @@ class Node {
         else if(values.toString().split("-")[0] == '2'){
           const block = JSON.parse(values.toString().split("-")[1]);
           console.log(block)
-
           await db_blocks.saveBlock( block );
-          
+        
 
         }
         else if(values.toString().split("-")[0] == '0'){
           
-          
           const newcontent = JSON.parse(values.toString().split("-")[1]);
           
-
-
           console.log(JSON.parse(await registerUser2(db_accounts, JSON.stringify(newcontent))));
 
         }
@@ -171,7 +171,28 @@ class Node {
 }
 
 async function SyncContent(dest) {
-  console.log(JSON.parse(await db_blocks.getTotalBlocks2()));
+  // console.log(dest + (await db_blocks.getTotalBlocks2()));
+  const fileContent = 'sync_'+(await db_blocks.getTotalBlocks2());
+  // console.log(fileContent)
+  const nodeAddr = `/ip4/127.0.0.1/tcp/${dest}` 
+  // console.log(address)
+  const transport = tcp()();
+    const upgrader = {
+      upgradeInbound: async maConn => maConn,
+      upgradeOutbound: async maConn => maConn
+    };
+
+      const lastSlashIndex = nodeAddr.lastIndexOf('/');
+      const portNumber = nodeAddr.substring(lastSlashIndex + 1);
+      if(port != portNumber){
+        const addr = multiaddr(nodeAddr);
+        const socket = await transport.dial(addr, { upgrader });
+        await pipe(
+          [fileContent],
+          socket
+        );
+        console.log(`File sent to ${addr.toString()}`);
+      }
 
 }
 
@@ -206,14 +227,7 @@ async function sendFileToAllNodes(fileContent) {
   }
 }
 async function sendFileToNode(fileContent) {
-  // Utilizar tu mecanismo de comunicación para enviar el archivo a todos los nodos
-  // Ejemplo:
   const nodes = fs.readFileSync('nodes.txt', 'utf-8').split('\n').filter(Boolean);
-  // const nodes = [
-  //   '/ip4/127.0.0.1/tcp/9000',
-  //   '/ip4/127.0.0.1/tcp/9001',
-  //   '/ip4/127.0.0.1/tcp/9002',
-  // ];
   const nodeAddr = nodes[0]
   const portdest = nodeAddr.toString().split("/")[4];
 
@@ -223,8 +237,6 @@ async function sendFileToNode(fileContent) {
       upgradeInbound: async maConn => maConn,
       upgradeOutbound: async maConn => maConn
     };
-
-      
 
       const lastSlashIndex = nodeAddr.lastIndexOf('/');
       const portNumber = nodeAddr.substring(lastSlashIndex + 1);
