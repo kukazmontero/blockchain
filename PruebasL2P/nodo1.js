@@ -2,7 +2,7 @@ import { tcp } from '@libp2p/tcp';
 import { multiaddr } from '@multiformats/multiaddr';
 import { pipe } from 'it-pipe';
 import all from 'it-all';
-// import fs from 'fs';
+import fs from 'fs';
 import { Level } from "level";
 
 
@@ -78,18 +78,19 @@ class Node {
     console.log('Listening on', this.addr.toString());
 
     // Registrar este nodo
-    // fs.appendFileSync('nodes.txt', `${this.addr.toString()}\n`);
+    fs.appendFileSync('nodes.txt', `${this.addr.toString()}\n`);
   }
 }
 
 async function sendFileToAllNodes(fileContent) {
   // Utilizar tu mecanismo de comunicación para enviar el archivo a todos los nodos
   // Ejemplo:
-  const nodes = [
-    '/ip4/127.0.0.1/tcp/9000',
-    '/ip4/127.0.0.1/tcp/9001',
-    '/ip4/127.0.0.1/tcp/9002',
-  ];
+  const nodes = fs.readFileSync('nodes.txt', 'utf-8').split('\n').filter(Boolean);
+  // const nodes = [
+  //   '/ip4/127.0.0.1/tcp/9000',
+  //   '/ip4/127.0.0.1/tcp/9001',
+  //   '/ip4/127.0.0.1/tcp/9002',
+  // ];
 
   const transport = tcp()();
   const upgrader = {
