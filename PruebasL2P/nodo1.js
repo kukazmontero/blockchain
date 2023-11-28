@@ -150,6 +150,12 @@ class Node {
     
     // Registrar este nodo
     fs.appendFileSync('nodes.txt', `${this.addr.toString()}\n`);
+
+    // Para enviar mensajes desde la línea de comandos
+    process.stdin.on('data', async (data) => {
+      await menu();
+      process.stdin.resume();
+    });
   }
 }
 
@@ -247,9 +253,3 @@ if( await db_blocks.getTotalBlocks() == 0 && port==9000) {
 
     
 
-// Para enviar mensajes desde la línea de comandos
-process.stdin.on('data', async (data) => {
-  // console.log('Presione cualquier tecla para continuar')
-  // const message = data.toString().trim();
-  await menu();
-});
