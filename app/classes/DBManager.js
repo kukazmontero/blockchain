@@ -139,14 +139,17 @@ var DBBlocks = /** @class */ (function () {
     };
     DBBlocks.prototype.printBlocks = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var totalBlocks, i, block;
+            var totalBlocks, formattedBlocks, i, block, formattedBlock, jsonResult, error_2;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.getTotalBlocks()];
+                    case 0:
+                        _a.trys.push([0, 6, , 7]);
+                        return [4 /*yield*/, this.getTotalBlocks()];
                     case 1:
                         totalBlocks = _a.sent();
                         if (totalBlocks == null)
-                            return [2 /*return*/];
+                            return [2 /*return*/, ''];
+                        formattedBlocks = [];
                         i = 0;
                         _a.label = 2;
                     case 2:
@@ -155,29 +158,37 @@ var DBBlocks = /** @class */ (function () {
                     case 3:
                         block = _a.sent();
                         if (block) {
-                            console.log("Block ".concat(block.index, ":"));
-                            console.log("Index: ".concat(block.index));
-                            console.log("Timestamp: ".concat(new Date(block.timestamp).toLocaleString()));
-                            console.log("Previous Hash: ".concat(block.previousHash));
-                            console.log("Transactions:");
-                            block.transactions.forEach(function (transaction, index) {
-                                console.log("    Transaction ".concat(index + 1, ":"));
-                                console.log("    Sender: ".concat(transaction.sender));
-                                console.log("    Receiver: ".concat(transaction.recipient));
-                                console.log("    Amount: ".concat(transaction.amount));
-                                console.log("    Signature of the transaction ".concat(index + 1, ": ").concat(transaction.signature));
-                                console.log("    Valid Signature: ".concat(transaction.valido));
-                            });
-                            console.log("\n");
+                            formattedBlock = {
+                                index: block.index,
+                                timestamp: new Date(block.timestamp).toLocaleString(),
+                                previousHash: block.previousHash,
+                                transactions: block.transactions.map(function (transaction, index) { return ({
+                                    index: index + 1,
+                                    sender: transaction.sender,
+                                    receiver: transaction.recipient,
+                                    amount: transaction.amount,
+                                    signature: transaction.signature,
+                                    isValid: transaction.valido,
+                                }); }),
+                            };
+                            formattedBlocks.push(formattedBlock);
                         }
                         else {
-                            console.log("Block ".concat(i, " no find."));
+                            console.log("Block ".concat(i, " not found."));
                         }
                         _a.label = 4;
                     case 4:
                         i++;
                         return [3 /*break*/, 2];
-                    case 5: return [2 /*return*/];
+                    case 5:
+                        jsonResult = JSON.stringify(formattedBlocks, null, 2);
+                        console.log(jsonResult); // Imprimir en consola para verificar antes de retornar
+                        return [2 /*return*/, jsonResult];
+                    case 6:
+                        error_2 = _a.sent();
+                        console.error('Error retrieving blocks:', error_2);
+                        return [2 /*return*/, JSON.stringify({ error: 'Internal server error' })];
+                    case 7: return [2 /*return*/];
                 }
             });
         });

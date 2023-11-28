@@ -57,37 +57,46 @@ export class DBBlocks {
     }
   }
 
-  async printBlocks(): Promise<void> {
-    const totalBlocks = await this.getTotalBlocks();
-    if(totalBlocks == null) return;
-
-    for (let i = 0; i < totalBlocks; i++) {
+  async printBlocks(): Promise<string> {
+    try {
+      const totalBlocks = await this.getTotalBlocks();
+      if (totalBlocks == null) return '';
+  
+      const formattedBlocks: any[] = [];
+      for (let i = 0; i < totalBlocks; i++) {
         const block = await this.loadBlock(i);
-
+  
         if (block) {
-            console.log(`Block ${block.index}:`);
-            console.log(`Index: ${block.index}`);
-            console.log(`Timestamp: ${new Date(block.timestamp).toLocaleString()}`);
-            console.log(`Previous Hash: ${block.previousHash}`);
-            
-            console.log("Transactions:");
-            block.transactions.forEach((transaction, index) => {
-                console.log(`    Transaction ${index + 1}:`);
-                console.log(`    Sender: ${transaction.sender}`);
-                console.log(`    Receiver: ${transaction.recipient}`);
-                console.log(`    Amount: ${transaction.amount}`);
-                console.log(`    Signature of the transaction ${index + 1}: ${transaction.signature}`);
-
-                console.log(`    Valid Signature: ${transaction.valido}`);
-            });
-
-            console.log("\n");
+          const formattedBlock = {
+            index: block.index,
+            timestamp: new Date(block.timestamp).toLocaleString(),
+            previousHash: block.previousHash,
+            transactions: block.transactions.map((transaction, index) => ({
+              index: index + 1,
+              sender: transaction.sender,
+              receiver: transaction.recipient,
+              amount: transaction.amount,
+              signature: transaction.signature,
+              isValid: transaction.valido,
+            })),
+          };
+  
+          formattedBlocks.push(formattedBlock);
         } else {
-            console.log(`Block ${i} no find.`);
+          console.log(`Block ${i} not found.`);
         }
+      }
+  
+      const jsonResult = JSON.stringify(formattedBlocks, null, 2);
+      console.log(jsonResult); // Imprimir en consola para verificar antes de retornar
+  
+      return jsonResult;
+    } catch (error) {
+      console.error('Error retrieving blocks:', error);
+      return JSON.stringify({ error: 'Internal server error' });
     }
   }
-}
+}  
 
 export class DBAccounts {
   private db: Level;

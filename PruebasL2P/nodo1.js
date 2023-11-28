@@ -17,81 +17,201 @@ const dirPath1 = `./db/db_accounts_${port}.db`;
 const n = 5;
 let transactions = [];
 
-const menu = async()=>{
-    // while (true) {
-      console.log("Menu:");
-      console.log("1. Register account");
-      console.log("2. Make transaction");
-      console.log("3. Get account of address");
-      console.log("4. View blocks");
-      console.log("5. Exit");
-  
-      const choice = input.question('Enter Number Choice: ');
-  
-          if (choice == '1'){
-            
-            const name = input.question('Enter name for account: ');
-            const message = name.toString().trim();
-            const aux = await registerUser(db_accounts, message);
-            const finalmessage = "1-" + aux;
-            await sendFileToAllNodes(finalmessage);
-            // break;
-          }
-          else if(choice == '2'){
-            
-            const sender_address = input.question('Input address sender: ');
-            const recipient_address = input.question('Input address recipient: ');
-            const amount = parseInt(input.question('Input amount: '));
-            
+import express from 'express';
+const app = express();
+app.use(express.json()); 
 
-            const sender = await db_accounts.getAccountByAddress(sender_address);
-            const recipient = await db_accounts.getAccountByAddress(recipient_address);
-            
 
-            if(sender != null && recipient != null) {
-                const transaction_generated = new Transaction(sender.name, recipient.name, amount, 1001, sender.privatekey, sender.publickey);
-                console.log(transaction_generated);
-                const last_block = await db_blocks.getLastBlock();
-                console.log(last_block);
-                // SI EL BLOQUE TIENE N TRANSACCIONES
-                if(last_block) {
-                  console.log(last_block?.transactions.length)
-                  console.log(n)
-                    if(last_block?.transactions.length == n) {
-                        const block =  await generateBlock(last_block.index+1, last_block.hash, [transaction_generated])
-                        const blockmessage = "2-"+ JSON.stringify(block);
-                        await sendFileToAllNodes(blockmessage);
-                        await db_blocks.saveBlock(block)
-                    }
-                    else {
-                        last_block.transactions.push(transaction_generated);
-                        const blockmessage = "2-"+ JSON.stringify(last_block);
-                        await sendFileToAllNodes(blockmessage);
-                        await db_blocks.saveBlock(last_block)
-                    }
-                }
-            }
-            
-            // break;
-          }
-          else if (choice == '3'){
-            const address = input.question('Enter address for get account: ');
-            console.log(await db_accounts.getAccountByAddress(address));
-            // break;
-          }
-          else if(choice == '4'){
-            await db_blocks.printBlocks();
-            // break;
-          }
-          else if (choice == '5'){
-            console.log("Exiting...");
-            return;
-          }
-          else{
-            console.log("Not Valid Choice");
-          }
-  // }
-}
+let chain = [];
+let accounts = [];
+
+app.get('/menu', (req, res) => {
+  const menu = {
+    menuItems: [
+      'Register account -> POST /account + JSON',
+      'Make transaction -> POST /transaction + JSON',
+      'Get account of address -> POST /account/#address',
+      'View blocks -> GET /blocks',
+      'Exit -> GET /exit'
+    ]
+  };
+
+  res.json(menu);
+});
+
+app.post('/account', async (req, res) => {
+  try {
+    let name;
+
+    // Verificar si la solicitud proviene de la API o de la consola
+    if (req.body) {
+      // Si es una solicitud API
+      name = req.body.name;
+    } else {
+      // Si es entrada por consola
+      name = input.question('Enter name for account: ');
+    }
+
+    if (!name) {
+      return res.status(400).json({ error: 'Name is required.' });
+    }
+
+    const newAccount = await registerUser(db_accounts, name);
+
+    // Convertir la cadena JSON a un objeto JavaScript
+    const newAccountObj = JSON.parse(newAccount);
+
+    console.log('New Account:', newAccountObj);
+    accounts.push(newAccountObj);
+    await sendFileToAllNodes(newAccount);
+
+    // Devolver el resultado en formato JSON
+    res.status(201).json({
+      success: true,
+      account: {
+        name: newAccountObj.name,
+        mnemonic: newAccountObj.mnemonic,
+        wallet: {
+          _isSigner: true,
+          address: newAccountObj.wallet.address,
+          provider: null
+        },
+        address: newAccountObj.address,
+        privatekey: newAccountObj.privatekey,
+        publickey: newAccountObj.publickey
+      }
+    });
+  } catch (error) {
+    console.error('Error creating account:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post('/transaction', async (req, res) => {
+  try {
+    let senderAddress, recipientAddress, amount;
+
+    // Verificar si la solicitud proviene de la API o de la consola
+    if (req.body) {
+      // Si es una solicitud API
+      senderAddress = req.body.senderAddress;
+      recipientAddress = req.body.recipientAddress;
+      amount = req.body.amount;
+    } else {
+      // Si es entrada por consola
+      senderAddress = input.question('Input address sender: ');
+      recipientAddress = input.question('Input address recipient: ');
+      amount = parseInt(input.question('Input amount: '));
+    }
+
+    const sender = await db_accounts.getAccountByAddress(senderAddress);
+    const recipient = await db_accounts.getAccountByAddress(recipientAddress);
+
+    // Verificar si sender y recipient son válidos
+    if (!sender || !recipient) {
+      return res.status(400).json({ error: 'Invalid sender or recipient address' });
+    }
+
+    const lastBlock = await db_blocks.getLastBlock();
+    const transactions = lastBlock ? lastBlock.transactions : [];
+
+    const transaction = new Transaction(
+      sender.name,
+      recipient.name,
+      amount,
+      Date.now(),
+      sender.privatekey,
+      sender.publickey
+    );
+
+    if (lastBlock && lastBlock.transactions.length === 5) {
+      const newBlock = generateBlock(
+        lastBlock.index + 1,
+        lastBlock.hash,
+        [transaction]
+      );
+      chain.push(newBlock);
+      await sendFileToAllNodes("2-"+ JSON.stringify(newBlock));
+      await db_blocks.saveBlock(newBlock);
+    } else {
+      transactions.push(transaction);
+      const blockmessage = "2-"+ JSON.stringify(lastBlock);
+      await sendFileToAllNodes(blockmessage);
+      await db_blocks.saveBlock(lastBlock);
+    }
+
+    res.status(200).json({ success: true, transaction });
+  } catch (error) {
+    console.error('Error processing transaction:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
+
+// Modifica el endpoint para obtener una cuenta por dirección
+app.get('/account/:address', async (req, res) => {
+  try {
+    const { address } = req.params;
+
+    // Validar que se haya proporcionado una dirección
+    if (!address) {
+      return res.status(400).json({ error: 'Address is required.' });
+    }
+
+    const account = await db_accounts.getAccountByAddress(address);
+
+    // Verificar si la cuenta fue encontrada
+    if (account) {
+      // Devolver el resultado en formato JSON
+      res.status(200).json({
+        success: true,
+        account: {
+          name: account.name,
+          mnemonic: account.mnemonic,
+          wallet: {
+            _isSigner: true,
+            address: account.wallet.address,
+            provider: null
+          },
+          address: account.address,
+          privatekey: account.privatekey,
+          publickey: account.publickey
+        }
+      });
+    } else {
+      // Si la cuenta no se encuentra, devolver un mensaje de error
+      res.status(404).json({ error: 'Account not found.' });
+    }
+  } catch (error) {
+    console.error('Error retrieving account by address:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
+app.get('/blocks', async (req, res) => {
+  try {
+    const blocks = await db_blocks.printBlocks();
+    
+    const parsedBlocks = JSON.parse(blocks);
+    res.json({ success: true, blocks: parsedBlocks });
+  } catch (error) {
+    console.error('Error retrieving blocks:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
+app.get('/exit', (req, res) => {
+  console.log("Exiting...");
+  process.exit(0);
+});
+
+
+app.listen(3000, () => {
+  console.log('API escuchando en http://localhost:3000');
+});
 
 if (!port) {
   console.log("Usage: node script.js <port>");
