@@ -153,13 +153,14 @@ class Node {
       }
     });
 
+     // Registrar este nodo
+     fs.appendFileSync('nodes.txt', `${this.addr.toString()}\n`);
+
     await listener.listen(this.addr);
     console.log('Listening on', this.addr.toString());
-    startmessage = `newconnection_${port}`;
+    const startmessage = `newconnection_${port}`;
     await sendFileToNode(startmessage);
-    
-    // Registrar este nodo
-    fs.appendFileSync('nodes.txt', `${this.addr.toString()}\n`);
+
 
     // Para enviar mensajes desde la línea de comandos
     process.stdin.on('data', async (data) => {
@@ -170,7 +171,7 @@ class Node {
 }
 
 async function SyncContent(dest) {
-  await db_blocks.printBlocks();
+  console.log(JSON.parse(await db_blocks.getTotalBlocks2()));
 
 }
 
@@ -214,7 +215,7 @@ async function sendFileToNode(fileContent) {
   //   '/ip4/127.0.0.1/tcp/9002',
   // ];
   const nodeAddr = nodes[0]
-  const portdest = nodeAddr.toString.split("/")[4];
+  const portdest = nodeAddr.toString().split("/")[4];
 
   if(fileContent.toString().split("_")[0]=== "newconnection" && portdest != fileContent.toString().split("_")[1]){
     const transport = tcp()();
