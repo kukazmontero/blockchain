@@ -204,6 +204,22 @@ var DBAccounts = /** @class */ (function () {
             });
         });
     };
+    DBAccounts.prototype.registerAccount2 = function (data) {
+        return __awaiter(this, void 0, void 0, function () {
+            var account, accountData;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        account = JSON.parse(data);
+                        accountData = JSON.stringify(account);
+                        return [4 /*yield*/, this.db.put(account.address, accountData)];
+                    case 1:
+                        _a.sent();
+                        return [2 /*return*/, accountData];
+                }
+            });
+        });
+    };
     DBAccounts.prototype.registerAccountnotNode = function (new_account) {
         return __awaiter(this, void 0, void 0, function () {
             var accountData;
