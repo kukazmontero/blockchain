@@ -17,6 +17,81 @@ const dirPath1 = `./db/db_accounts_${port}.db`;
 const n = 5;
 let transactions = [];
 
+const menu = async()=>{
+    // while (true) {
+      console.log("Menu:");
+      console.log("1. Register account");
+      console.log("2. Make transaction");
+      console.log("3. Get account of address");
+      console.log("4. View blocks");
+      console.log("5. Exit");
+  
+      const choice = input.question('Enter Number Choice: ');
+  
+          if (choice == '1'){
+            
+            const name = input.question('Enter name for account: ');
+            const message = name.toString().trim();
+            const aux = await registerUser(db_accounts, message);
+            const finalmessage = "1-" + aux;
+            await sendFileToAllNodes(finalmessage);
+            // break;
+          }
+          else if(choice == '2'){
+            
+            const sender_address = input.question('Input address sender: ');
+            const recipient_address = input.question('Input address recipient: ');
+            const amount = parseInt(input.question('Input amount: '));
+            
+
+            const sender = await db_accounts.getAccountByAddress(sender_address);
+            const recipient = await db_accounts.getAccountByAddress(recipient_address);
+            
+
+            if(sender != null && recipient != null) {
+                const transaction_generated = new Transaction(sender.name, recipient.name, amount, 1001, sender.privatekey, sender.publickey);
+                console.log(transaction_generated);
+                const last_block = await db_blocks.getLastBlock();
+                console.log(last_block);
+                // SI EL BLOQUE TIENE N TRANSACCIONES
+                if(last_block) {
+                  console.log(last_block?.transactions.length)
+                  console.log(n)
+                    if(last_block?.transactions.length == n) {
+                        const block =  await generateBlock(last_block.index+1, last_block.hash, [transaction_generated])
+                        const blockmessage = "2-"+ JSON.stringify(block);
+                        await sendFileToAllNodes(blockmessage);
+                        await db_blocks.saveBlock(block)
+                    }
+                    else {
+                        last_block.transactions.push(transaction_generated);
+                        const blockmessage = "2-"+ JSON.stringify(last_block);
+                        await sendFileToAllNodes(blockmessage);
+                        await db_blocks.saveBlock(last_block)
+                    }
+                }
+            }
+            
+            // break;
+          }
+          else if (choice == '3'){
+            const address = input.question('Enter address for get account: ');
+            console.log(await db_accounts.getAccountByAddress(address));
+            // break;
+          }
+          else if(choice == '4'){
+            await db_blocks.printBlocks();
+            // break;
+          }
+          else if (choice == '5'){
+            console.log("Exiting...");
+            return;
+          }
+          else{
+            console.log("Not Valid Choice");
+          }
+  // }
+}
 
 if (!port) {
   console.log("Usage: node script.js <port>");
@@ -42,10 +117,6 @@ class Node {
           socket,
           all
         );
-
-
-        
-
 
         //console.log(`Received: ${values.toString()}`);
         if(values.toString().split("-")[0] == '1'){
@@ -76,7 +147,7 @@ class Node {
 
     await listener.listen(this.addr);
     console.log('Listening on', this.addr.toString());
-
+    
     // Registrar este nodo
     fs.appendFileSync('nodes.txt', `${this.addr.toString()}\n`);
   }
@@ -178,73 +249,7 @@ if( await db_blocks.getTotalBlocks() == 0 && port==9000) {
 
 // Para enviar mensajes desde la línea de comandos
 process.stdin.on('data', async (data) => {
-  while (true) {
-    console.log("Menu:");
-    console.log("1. Register account");
-    console.log("2. Make transaction");
-    console.log("3. Get account of address");
-    console.log("4. View blocks");
-    console.log("5. Exit");
-
-    const choice = input.question('Enter Number Choice: ');
-
-    switch (choice) {
-        case '1':
-            const name = input.question('Enter name for account: ');
-            const message = name.toString().trim();
-            const aux = await registerUser(db_accounts, message);
-            const finalmessage = "1-" + aux;
-            await sendFileToAllNodes(finalmessage);
-            break;
-        case '2':
-            const sender_address = input.question('Input address sender: ');
-            const recipient_address = input.question('Input address recipient: ');
-            const amount = parseInt(input.question('Input amount: '));
-            
-
-            const sender = await db_accounts.getAccountByAddress(sender_address);
-            const recipient = await db_accounts.getAccountByAddress(recipient_address);
-            
-
-            if(sender != null && recipient != null) {
-                const transaction_generated = new Transaction(sender.name, recipient.name, amount, 1001, sender.privatekey, sender.publickey);
-                console.log(transaction_generated);
-                const last_block = await db_blocks.getLastBlock();
-                console.log(last_block);
-                // SI EL BLOQUE TIENE N TRANSACCIONES
-                if(last_block) {
-                  console.log(last_block?.transactions.length)
-                  console.log(n)
-                    if(last_block?.transactions.length == n) {
-                        const block =  await generateBlock(last_block.index+1, last_block.hash, [transaction_generated])
-                        const blockmessage = "2-"+ JSON.stringify(block);
-                        await sendFileToAllNodes(blockmessage);
-                        await db_blocks.saveBlock(block)
-                    }
-                    else {
-                        last_block.transactions.push(transaction_generated);
-                        const blockmessage = "2-"+ JSON.stringify(last_block);
-                        await sendFileToAllNodes(blockmessage);
-                        await db_blocks.saveBlock(last_block)
-                    }
-                }
-            }
-            
-            break;
-        case '3':
-            const address = input.question('Enter address for get account: ');
-            console.log(await db_accounts.getAccountByAddress(address));
-            break;
-        case '4':
-            await db_blocks.printBlocks();
-            break;
-        case '5':
-            console.log("Exiting...");
-            return;
-        default:
-            console.log("Not Valid Choice");
-    }
-}
-
-  
+  // console.log('Presione cualquier tecla para continuar')
+  // const message = data.toString().trim();
+  await menu();
 });
