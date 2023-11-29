@@ -260,72 +260,79 @@ class Node {
   }
 
   async start() {
-    const listener = this.transport.createListener({
-      upgrader: this.upgrader,
-      handler: async (socket) => {
-        console.log('new connection opened');
-        const values = await pipe(
-          socket,
-          all
-        );
-
-        if (values.toString().split("_")[0] === "newconnection" && port != values.toString().split("_")[1]) {
-          await SyncContent(values.toString().split("_")[1]);
-        } else if (values.toString().split("°")[0] === "sync") {
-          const blocks = JSON.parse(values.toString().split("°")[1]);
-          for (const block of blocks) {
-            const addBlock = JSON.parse(block[1]);
-            db_blocks.saveBlock(addBlock);
-          }
-          const users = JSON.parse(values.toString().split("°")[2]);
-          for (const user of users) {
-            const addUser = JSON.parse(user[1]);
-            db_accounts.saveUser(addUser);
-          }
-        } else if (values.toString().split("-")[0] == '1') {
-          const new_acount = values.toString().split("-")[1];
-          console.log(JSON.parse(await registerUser2(db_accounts, new_acount)));
-        } else if (values.toString().split("-")[0] == '2') {
-          const block = JSON.parse(values.toString().split("-")[1]);
-          console.log(block);
-          await db_blocks.saveBlock(block);
-        } else if (values.toString().split("-")[0] == '0') {
-          const newcontent = JSON.parse(values.toString().split("-")[1]);
-          console.log(JSON.parse(await registerUser2(db_accounts, JSON.stringify(newcontent))));
-        }
-
-        if (socket && typeof socket.on === 'function') {
-          socket.on('close', () => {
-            // Código de manejo del evento close
-        
-            // Eliminar este nodo del archivo nodes.txt cuando se cierra la conexión
-            this.removeNodeFromList();
-        
-            // Por ejemplo, también puedes imprimir un mensaje cuando se cierra la conexión
-            console.log('La conexión se cerró.');
-        
-            // También puedes realizar otras acciones, como liberar recursos o notificar.
-          });
-        } else {
-          console.error('Socket does not have the expected methods.');
-        }
-        
+    try {
+      // Verificar si el archivo 'nodes.txt' existe, y crearlo si no
+      if (!fs.existsSync(this.nodesFilePath)) {
+        fs.writeFileSync(this.nodesFilePath, ''); // Puedes dejarlo vacío por ahora
       }
-    });
-
-    // Registrar este nodo
-    fs.appendFileSync(this.nodesFilePath, `${this.addr.toString()}\n`);
-
-    await listener.listen(this.addr);
-    console.log('Listening on', this.addr.toString());
-    const startmessage = `newconnection_${port}`;
-    await sendFileToNode(startmessage);
-
-    // Para enviar mensajes desde la línea de comandos
-    process.stdin.on('data', async (data) => {
-      await menu();
-    });
+  
+      const listener = this.transport.createListener({
+        upgrader: this.upgrader,
+        handler: async (socket) => {
+          console.log('new connection opened');
+          const values = await pipe(
+            socket,
+            all
+          );
+  
+          if (values.toString().split("_")[0] === "newconnection" && port != values.toString().split("_")[1]) {
+            await SyncContent(values.toString().split("_")[1]);
+          } else if (values.toString().split("°")[0] === "sync") {
+            const blocks = JSON.parse(values.toString().split("°")[1]);
+            for (const block of blocks) {
+              const addBlock = JSON.parse(block[1]);
+              db_blocks.saveBlock(addBlock);
+            }
+            const users = JSON.parse(values.toString().split("°")[2]);
+            for (const user of users) {
+              const addUser = JSON.parse(user[1]);
+              db_accounts.saveUser(addUser);
+            }
+          } else if (values.toString().split("-")[0] == '1') {
+            const new_acount = values.toString().split("-")[1];
+            console.log(JSON.parse(await registerUser2(db_accounts, new_acount)));
+          } else if (values.toString().split("-")[0] == '2') {
+            const block = JSON.parse(values.toString().split("-")[1]);
+            console.log(block);
+            await db_blocks.saveBlock(block);
+          } else if (values.toString().split("-")[0] == '0') {
+            const newcontent = JSON.parse(values.toString().split("-")[1]);
+            console.log(JSON.parse(await registerUser2(db_accounts, JSON.stringify(newcontent))));
+          }
+  
+          if (socket && typeof socket.on === 'function') {
+            socket.on('close', () => {
+              // Código de manejo del evento close
+              this.removeNodeFromList();
+              console.log('La conexión se cerró.');
+            });
+          } else {
+            console.error('Socket does not have the expected methods.');
+          }
+        }
+      });
+  
+      // Verificar si la dirección ya está en la lista antes de registrar este nodo
+      const nodes = fs.readFileSync(this.nodesFilePath, 'utf-8').split('\n').filter(Boolean);
+      if (!nodes.includes(this.addr.toString())) {
+        // Si la dirección no está presente, registrar este nodo
+        fs.appendFileSync(this.nodesFilePath, `${this.addr.toString()}\n`);
+      }
+  
+      await listener.listen(this.addr);
+      console.log('Listening on', this.addr.toString());
+      const startmessage = `newconnection_${port}`;
+      await sendFileToNode(startmessage);
+  
+      // Para enviar mensajes desde la línea de comandos
+      process.stdin.on('data', async (data) => {
+        await menu();
+      });
+    } catch (error) {
+      console.error('Error during node start:', error);
+    }
   }
+  
 
   removeNodeFromList() {
     // Leer la lista de nodos actual del archivo
@@ -369,35 +376,47 @@ async function SyncContent(dest) {
 }
 
 async function sendFileToAllNodes(fileContent) {
-  // Utilizar tu mecanismo de comunicación para enviar el archivo a todos los nodos
-  // Ejemplo:
-  const nodes = fs.readFileSync('nodes.txt', 'utf-8').split('\n').filter(Boolean);
-  // const nodes = [
-  //   '/ip4/127.0.0.1/tcp/9000',
-  //   '/ip4/127.0.0.1/tcp/9001',
-  //   '/ip4/127.0.0.1/tcp/9002',
-  // ];
+  try {
+    // Utilizar tu mecanismo de comunicación para enviar el archivo a todos los nodos
+    // Ejemplo:
+    const nodes = fs.readFileSync('nodes.txt', 'utf-8').split('\n').filter(Boolean);
+    // const nodes = [
+    //   '/ip4/127.0.0.1/tcp/9000',
+    //   '/ip4/127.0.0.1/tcp/9001',
+    //   '/ip4/127.0.0.1/tcp/9002',
+    // ];
 
-  const transport = tcp()();
-  const upgrader = {
-    upgradeInbound: async maConn => maConn,
-    upgradeOutbound: async maConn => maConn
-  };
+    const transport = tcp()();
+    const upgrader = {
+      upgradeInbound: async maConn => maConn,
+      upgradeOutbound: async maConn => maConn
+    };
 
-  for (const nodeAddr of nodes) {
-    const lastSlashIndex = nodeAddr.lastIndexOf('/');
-    const portNumber = nodeAddr.substring(lastSlashIndex + 1);
-    if(port != portNumber){
-      const addr = multiaddr(nodeAddr);
-      const socket = await transport.dial(addr, { upgrader });
-      await pipe(
-        [fileContent],
-        socket
-      );
-      console.log(`File sent to ${addr.toString()}`);
+    for (const nodeAddr of nodes) {
+      try {
+        const lastSlashIndex = nodeAddr.lastIndexOf('/');
+        const portNumber = nodeAddr.substring(lastSlashIndex + 1);
+        if (port != portNumber) {
+          const addr = multiaddr(nodeAddr);
+          const socket = await transport.dial(addr, { upgrader });
+          await pipe(
+            [fileContent],
+            socket
+          );
+          console.log(`File sent to ${addr.toString()}`);
+        }
+      } catch (error) {
+        console.error(`Error sending file to node ${nodeAddr}:`, error.message);
+        // Puedes continuar con el siguiente nodo o tomar otras medidas según tu lógica
+        continue;
+      }
     }
+  } catch (error) {
+    console.error('Error reading nodes file:', error.message);
+    // Puedes manejar el error de lectura del archivo de nodos aquí
   }
 }
+
 async function sendFileToNode(fileContent) {
   const nodes = fs.readFileSync('nodes.txt', 'utf-8').split('\n').filter(Boolean);
   const nodeAddr = nodes[0]
