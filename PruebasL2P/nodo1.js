@@ -122,14 +122,15 @@ app.post('/transaction', async (req, res) => {
       return res.status(400).json({ error: 'Insufficient funds in the sender account.' });
     }
 
+    // Modificar el estado del sender a blocked antes de realizar la transacción
+    await db_accounts.modifyState(senderAddress, true);
+
     // Descontar el monto de la cuenta del remitente
     await db_accounts.modifyMoney(senderAddress, -amount);
 
     // Aumentar el monto en la cuenta del destinatario
     await db_accounts.modifyMoney(recipientAddress, amount);
 
-    // Modificar el estado del sender a blocked después de realizar la transacción
-    await db_accounts.modifyState(senderAddress, true);
 
     // Verificar si es necesario crear un nuevo bloque
     const lastBlock = await db_blocks.getLastBlock();
@@ -235,9 +236,10 @@ app.get('/exit', (req, res) => {
 });
 
 
-app.listen(3000, () => {
-  console.log('API escuchando en http://localhost:3000');
+app.listen(port, () => {
+  console.log(`API escuchando en http://localhost:${port}`);
 });
+
 
 if (!port) {
   console.log("Usage: node script.js <port>");
@@ -263,57 +265,43 @@ class Node {
           socket,
           all
         );
-
-        if(values.toString().split("_")[0] === "newconnection" && port != values.toString().split("_")[1]){
+  
+        if (values.toString().split("_")[0] === "newconnection" && port != values.toString().split("_")[1]) {
           await SyncContent(values.toString().split("_")[1]);
-
-        }
-        else if (values.toString().split("_")[0] === "sync"){
-          const blocks = JSON.parse(values.toString().split("_")[1])
-          for(const block of blocks){
-            const addBlock = JSON.parse(block[1])
+        } else if (values.toString().split("_")[0] === "sync") {
+          const blocks = JSON.parse(values.toString().split("_")[1]);
+          for (const block of blocks) {
+            const addBlock = JSON.parse(block[1]);
             db_blocks.saveBlock(addBlock);
           }
-        }
-
-        else if(values.toString().split("-")[0] == '1'){
+        } else if (values.toString().split("-")[0] == '1') {
           const new_acount = values.toString().split("-")[1];
-          //console.log(new_acount)
           console.log(JSON.parse(await registerUser2(db_accounts, new_acount)));
-        }
-        else if(values.toString().split("-")[0] == '2'){
+        } else if (values.toString().split("-")[0] == '2') {
           const block = JSON.parse(values.toString().split("-")[1]);
-          console.log(block)
-          await db_blocks.saveBlock( block );
-        
-
-        }
-        else if(values.toString().split("-")[0] == '0'){
-          
+          console.log(block);
+          await db_blocks.saveBlock(block);
+        } else if (values.toString().split("-")[0] == '0') {
           const newcontent = JSON.parse(values.toString().split("-")[1]);
-          
           console.log(JSON.parse(await registerUser2(db_accounts, JSON.stringify(newcontent))));
-
         }
-
       }
     });
-
-     // Registrar este nodo
-     fs.appendFileSync('nodes.txt', `${this.addr.toString()}\n`);
-
+  
+    // Registrar este nodo
+    fs.appendFileSync('nodes.txt', `${this.addr.toString()}\n`);
+  
     await listener.listen(this.addr);
     console.log('Listening on', this.addr.toString());
     const startmessage = `newconnection_${port}`;
     await sendFileToNode(startmessage);
-
-
+  
     // Para enviar mensajes desde la línea de comandos
     process.stdin.on('data', async (data) => {
       await menu();
-      process.stdin.resume();
     });
   }
+  
 }
 
 async function SyncContent(dest) {
