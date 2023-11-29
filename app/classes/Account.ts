@@ -7,6 +7,8 @@ export class Account {
   public wallet: any;
   public privatekey: string;
   public publickey: string;
+  public money: number;
+  public blocked: boolean;
 
   constructor(name:string) {
     this.name = name;
@@ -16,5 +18,7 @@ export class Account {
     this.address = this.wallet.address;
     this.privatekey = this.wallet.privateKey;
     this.publickey = this.wallet.publicKey;
+    this.money = 100;
+    this.blocked = false;
   }
 }

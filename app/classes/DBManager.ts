@@ -148,4 +148,35 @@ export class DBAccounts {
       console.log( await this.getAccountByAddress(element) );
     })
   }
+
+  async modifyState(address: string, blocked: boolean): Promise<void> {
+    try {
+      const account = await this.getAccountByAddress(address);
+      
+      if (account) {
+        account.blocked = blocked;
+        const accountData = JSON.stringify(account);
+        await this.db.put(account.address, accountData);
+      }
+    } catch (error) {
+      console.error('Error modifying account state:', error);
+    }
+  }
+  async modifyMoney(address: string, amount: number): Promise<void> {
+    try {
+      const account = await this.getAccountByAddress(address);
+
+      if (account) {
+        // Realiza la modificación del saldo
+        account.money += amount;
+
+        // Guarda la cuenta modificada en la base de datos
+        const accountData = JSON.stringify(account);
+        await this.db.put(account.address, accountData);
+      }
+    } catch (error) {
+      console.error('Error modifying money:', error);
+    }
+  }
+  
 }

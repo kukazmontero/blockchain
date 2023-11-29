@@ -78,7 +78,9 @@ app.post('/account', async (req, res) => {
         },
         address: newAccountObj.address,
         privatekey: newAccountObj.privatekey,
-        publickey: newAccountObj.publickey
+        publickey: newAccountObj.publickey,
+        money: newAccountObj.money,
+        blocked: newAccountObj.blocked
       }
     });
   } catch (error) {
@@ -107,11 +109,29 @@ app.post('/transaction', async (req, res) => {
     const sender = await db_accounts.getAccountByAddress(senderAddress);
     const recipient = await db_accounts.getAccountByAddress(recipientAddress);
 
-    // Verificar si sender y recipient son válidos
     if (!sender || !recipient) {
       return res.status(400).json({ error: 'Invalid sender or recipient address' });
     }
 
+    if (sender.blocked) {
+      return res.status(400).json({ error: 'Sender account is blocked.' });
+    }
+
+    // Verificar si el remitente tiene suficiente dinero
+    if (sender.money < amount) {
+      return res.status(400).json({ error: 'Insufficient funds in the sender account.' });
+    }
+
+    // Descontar el monto de la cuenta del remitente
+    await db_accounts.modifyMoney(senderAddress, -amount);
+
+    // Aumentar el monto en la cuenta del destinatario
+    await db_accounts.modifyMoney(recipientAddress, amount);
+
+    // Modificar el estado del sender a blocked después de realizar la transacción
+    await db_accounts.modifyState(senderAddress, true);
+
+    // Verificar si es necesario crear un nuevo bloque
     const lastBlock = await db_blocks.getLastBlock();
     const transactions = lastBlock ? lastBlock.transactions : [];
 
@@ -131,14 +151,17 @@ app.post('/transaction', async (req, res) => {
         [transaction]
       );
       chain.push(newBlock);
-      await sendFileToAllNodes("2-"+ JSON.stringify(newBlock));
+      await sendFileToAllNodes("2-" + JSON.stringify(newBlock));
       await db_blocks.saveBlock(newBlock);
     } else {
       transactions.push(transaction);
-      const blockmessage = "2-"+ JSON.stringify(lastBlock);
+      const blockmessage = "2-" + JSON.stringify(lastBlock);
       await sendFileToAllNodes(blockmessage);
       await db_blocks.saveBlock(lastBlock);
     }
+
+    // Modificar el estado del sender a unblocked después de realizar la transacción
+    await db_accounts.modifyState(senderAddress, false);
 
     res.status(200).json({ success: true, transaction });
   } catch (error) {
@@ -146,6 +169,7 @@ app.post('/transaction', async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+
 
 
 
@@ -176,7 +200,9 @@ app.get('/account/:address', async (req, res) => {
           },
           address: account.address,
           privatekey: account.privatekey,
-          publickey: account.publickey
+          publickey: account.publickey,
+          money: account.money,
+          blocked: account.blocked
         }
       });
     } else {

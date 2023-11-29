@@ -315,6 +315,61 @@ var DBAccounts = /** @class */ (function () {
             });
         });
     };
+    DBAccounts.prototype.modifyState = function (address, blocked) {
+        return __awaiter(this, void 0, void 0, function () {
+            var account, accountData, error_3;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        _a.trys.push([0, 4, , 5]);
+                        return [4 /*yield*/, this.getAccountByAddress(address)];
+                    case 1:
+                        account = _a.sent();
+                        if (!account) return [3 /*break*/, 3];
+                        account.blocked = blocked;
+                        accountData = JSON.stringify(account);
+                        return [4 /*yield*/, this.db.put(account.address, accountData)];
+                    case 2:
+                        _a.sent();
+                        _a.label = 3;
+                    case 3: return [3 /*break*/, 5];
+                    case 4:
+                        error_3 = _a.sent();
+                        console.error('Error modifying account state:', error_3);
+                        return [3 /*break*/, 5];
+                    case 5: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    DBAccounts.prototype.modifyMoney = function (address, amount) {
+        return __awaiter(this, void 0, void 0, function () {
+            var account, accountData, error_4;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        _a.trys.push([0, 4, , 5]);
+                        return [4 /*yield*/, this.getAccountByAddress(address)];
+                    case 1:
+                        account = _a.sent();
+                        if (!account) return [3 /*break*/, 3];
+                        // Realiza la modificación del saldo
+                        account.money += amount;
+                        accountData = JSON.stringify(account);
+                        return [4 /*yield*/, this.db.put(account.address, accountData)];
+                    case 2:
+                        _a.sent();
+                        _a.label = 3;
+                    case 3: return [3 /*break*/, 5];
+                    case 4:
+                        error_4 = _a.sent();
+                        console.error('Error modifying money:', error_4);
+                        return [3 /*break*/, 5];
+                    case 5: return [2 /*return*/];
+                }
+            });
+        });
+    };
     return DBAccounts;
 }());
 exports.DBAccounts = DBAccounts;

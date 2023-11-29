@@ -10,6 +10,8 @@ var Account = /** @class */ (function () {
         this.address = this.wallet.address;
         this.privatekey = this.wallet.privateKey;
         this.publickey = this.wallet.publicKey;
+        this.money = 100;
+        this.blocked = false;
     }
     return Account;
 }());
