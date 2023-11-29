@@ -133,9 +133,12 @@ app.post('/transaction', async (req, res) => {
     setTimeout(async () => {
       // Descontar el monto de la cuenta del remitente
       await db_accounts.modifyMoney(senderAddress, -amount);
+      await sendFileToAllNodes("descmoney-" + senderAddress + "-" + amount);
+
 
       // Aumentar el monto en la cuenta del destinatario
       await db_accounts.modifyMoney(recipientAddress, amount);
+      await sendFileToAllNodes("addmoney-" + recipientAddress + "-" + amount);
 
 
       // Verificar si es necesario crear un nuevo bloque
@@ -169,6 +172,8 @@ app.post('/transaction', async (req, res) => {
 
       // Modificar el estado del sender a unblocked después de realizar la transacción
       await db_accounts.modifyState(senderAddress, false);
+      await sendFileToAllNodes("unbloqued-" + senderAddress);
+
 
       res.status(200).json({ success: true, transaction });
 
@@ -314,7 +319,17 @@ class Node {
           } else if (values.toString().split("-")[0] == 'unbloqued') {
             const addr = values.toString().split("-")[1];
             await db_accounts.modifyState(addr, false);
+          } else if (values.toString().split("-")[0] == 'addmoney') {
+            const addr = values.toString().split("-")[1];
+            const money = parseInt(values.toString().split("-")[2]);
+            await db_accounts.modifyMoney(addr, money);
+          } else if (values.toString().split("-")[0] == 'descmoney') {
+            const addr = values.toString().split("-")[1];
+            const money = parseInt(values.toString().split("-")[2]);
+            await db_accounts.modifyMoney(addr, -money);
           }
+
+
   
           
         }
