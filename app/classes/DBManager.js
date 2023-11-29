@@ -198,6 +198,25 @@ var DBBlocks = /** @class */ (function () {
 exports.DBBlocks = DBBlocks;
 var DBAccounts = /** @class */ (function () {
     function DBAccounts(dbPath) {
+        var _this = this;
+        this.getTotalUsers = function () { return __awaiter(_this, void 0, void 0, function () {
+            var user_data, user, _a;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
+                    case 0:
+                        _b.trys.push([0, 2, , 3]);
+                        return [4 /*yield*/, this.db.iterator().all()];
+                    case 1:
+                        user_data = _b.sent();
+                        user = JSON.stringify(user_data);
+                        return [2 /*return*/, user];
+                    case 2:
+                        _a = _b.sent();
+                        return [2 /*return*/, null];
+                    case 3: return [2 /*return*/];
+                }
+            });
+        }); };
         this.db = new level_1.Level(dbPath, { valueEncoding: 'json' });
     }
     DBAccounts.prototype.getTotalAccounts = function () {
@@ -366,6 +385,21 @@ var DBAccounts = /** @class */ (function () {
                         console.error('Error modifying money:', error_4);
                         return [3 /*break*/, 5];
                     case 5: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    DBAccounts.prototype.saveUser = function (user) {
+        return __awaiter(this, void 0, void 0, function () {
+            var userData;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        userData = JSON.stringify(user);
+                        return [4 /*yield*/, this.db.put(user.address, userData)];
+                    case 1:
+                        _a.sent();
+                        return [2 /*return*/];
                 }
             });
         });

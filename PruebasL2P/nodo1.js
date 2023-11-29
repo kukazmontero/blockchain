@@ -58,12 +58,14 @@ app.post('/account', async (req, res) => {
 
     const newAccount = await registerUser(db_accounts, name);
 
+    const finalmessage = "1-" + newAccount;
+    await sendFileToAllNodes(finalmessage);
+
     // Convertir la cadena JSON a un objeto JavaScript
     const newAccountObj = JSON.parse(newAccount);
-
     console.log('New Account:', newAccountObj);
     accounts.push(newAccountObj);
-    await sendFileToAllNodes(newAccount);
+
 
     // Devolver el resultado en formato JSON
     res.status(201).json({
@@ -254,6 +256,7 @@ class Node {
       upgradeInbound: async maConn => maConn,
       upgradeOutbound: async maConn => maConn
     };
+    this.nodesFilePath = 'nodes.txt';
   }
 
   async start() {
@@ -265,14 +268,19 @@ class Node {
           socket,
           all
         );
-  
+
         if (values.toString().split("_")[0] === "newconnection" && port != values.toString().split("_")[1]) {
           await SyncContent(values.toString().split("_")[1]);
-        } else if (values.toString().split("_")[0] === "sync") {
-          const blocks = JSON.parse(values.toString().split("_")[1]);
+        } else if (values.toString().split("°")[0] === "sync") {
+          const blocks = JSON.parse(values.toString().split("°")[1]);
           for (const block of blocks) {
             const addBlock = JSON.parse(block[1]);
             db_blocks.saveBlock(addBlock);
+          }
+          const users = JSON.parse(values.toString().split("°")[2]);
+          for (const user of users) {
+            const addUser = JSON.parse(user[1]);
+            db_accounts.saveUser(addUser);
           }
         } else if (values.toString().split("-")[0] == '1') {
           const new_acount = values.toString().split("-")[1];
@@ -285,28 +293,58 @@ class Node {
           const newcontent = JSON.parse(values.toString().split("-")[1]);
           console.log(JSON.parse(await registerUser2(db_accounts, JSON.stringify(newcontent))));
         }
+
+        if (socket && typeof socket.on === 'function') {
+          socket.on('close', () => {
+            // Código de manejo del evento close
+        
+            // Eliminar este nodo del archivo nodes.txt cuando se cierra la conexión
+            this.removeNodeFromList();
+        
+            // Por ejemplo, también puedes imprimir un mensaje cuando se cierra la conexión
+            console.log('La conexión se cerró.');
+        
+            // También puedes realizar otras acciones, como liberar recursos o notificar.
+          });
+        } else {
+          console.error('Socket does not have the expected methods.');
+        }
+        
       }
     });
-  
+
     // Registrar este nodo
-    fs.appendFileSync('nodes.txt', `${this.addr.toString()}\n`);
-  
+    fs.appendFileSync(this.nodesFilePath, `${this.addr.toString()}\n`);
+
     await listener.listen(this.addr);
     console.log('Listening on', this.addr.toString());
     const startmessage = `newconnection_${port}`;
     await sendFileToNode(startmessage);
-  
+
     // Para enviar mensajes desde la línea de comandos
     process.stdin.on('data', async (data) => {
       await menu();
     });
   }
+
+  removeNodeFromList() {
+    // Leer la lista de nodos actual del archivo
+    const nodes = fs.readFileSync(this.nodesFilePath, 'utf-8').split('\n').filter(Boolean);
+  
+    // Encontrar y eliminar este nodo de la lista
+    const updatedNodes = nodes.filter(node => node !== this.addr.toString());
+  
+    // Escribir la lista actualizada de nodos al archivo
+    fs.writeFileSync(this.nodesFilePath, updatedNodes.join('\n'));
+  }
   
 }
+  
 
 async function SyncContent(dest) {
   // console.log(dest + (await db_blocks.getTotalBlocks2()));
-  const fileContent = 'sync_'+(await db_blocks.getTotalBlocks2());
+  const fileContent = 'sync°'+(await db_blocks.getTotalBlocks2()) + "°" + (await db_accounts.getTotalUsers());
+  
   // console.log(fileContent)
   const nodeAddr = `/ip4/127.0.0.1/tcp/${dest}` 
   // console.log(address)

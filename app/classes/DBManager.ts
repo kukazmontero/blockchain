@@ -178,5 +178,19 @@ export class DBAccounts {
       console.error('Error modifying money:', error);
     }
   }
+
+  getTotalUsers= async (): Promise<String|null> => {
+    try {
+      const user_data = await this.db.iterator().all();
+      const user:String = JSON.stringify(user_data);
+      return user;
+    } catch {
+      return null;
+    }
+  }
+  async saveUser(user: Account): Promise<void> {
+    const userData = JSON.stringify(user);
+    await this.db.put(user.address, userData);
+  }
   
 }
