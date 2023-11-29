@@ -126,47 +126,57 @@ app.post('/transaction', async (req, res) => {
 
     // Modificar el estado del sender a blocked antes de realizar la transacción
     await db_accounts.modifyState(senderAddress, true);
-
-    // Descontar el monto de la cuenta del remitente
-    await db_accounts.modifyMoney(senderAddress, -amount);
-
-    // Aumentar el monto en la cuenta del destinatario
-    await db_accounts.modifyMoney(recipientAddress, amount);
+    await sendFileToAllNodes("bloqued-" + senderAddress);
 
 
-    // Verificar si es necesario crear un nuevo bloque
-    const lastBlock = await db_blocks.getLastBlock();
-    const transactions = lastBlock ? lastBlock.transactions : [];
+    // Esperar 10 segundos antes de ejecutar el siguiente bloque de código
+    setTimeout(async () => {
+      // Descontar el monto de la cuenta del remitente
+      await db_accounts.modifyMoney(senderAddress, -amount);
 
-    const transaction = new Transaction(
-      sender.name,
-      recipient.name,
-      amount,
-      Date.now(),
-      sender.privatekey,
-      sender.publickey
-    );
+      // Aumentar el monto en la cuenta del destinatario
+      await db_accounts.modifyMoney(recipientAddress, amount);
 
-    if (lastBlock && lastBlock.transactions.length === 5) {
-      const newBlock = generateBlock(
-        lastBlock.index + 1,
-        lastBlock.hash,
-        [transaction]
+
+      // Verificar si es necesario crear un nuevo bloque
+      const lastBlock = await db_blocks.getLastBlock();
+      const transactions = lastBlock ? lastBlock.transactions : [];
+
+      const transaction = new Transaction(
+        sender.name,
+        recipient.name,
+        amount,
+        Date.now(),
+        sender.privatekey,
+        sender.publickey
       );
-      chain.push(newBlock);
-      await sendFileToAllNodes("2-" + JSON.stringify(newBlock));
-      await db_blocks.saveBlock(newBlock);
-    } else {
-      transactions.push(transaction);
-      const blockmessage = "2-" + JSON.stringify(lastBlock);
-      await sendFileToAllNodes(blockmessage);
-      await db_blocks.saveBlock(lastBlock);
-    }
 
-    // Modificar el estado del sender a unblocked después de realizar la transacción
-    await db_accounts.modifyState(senderAddress, false);
+      if (lastBlock && lastBlock.transactions.length === 5) {
+        const newBlock = generateBlock(
+          lastBlock.index + 1,
+          lastBlock.hash,
+          [transaction]
+        );
+        chain.push(newBlock);
+        await sendFileToAllNodes("2-" + JSON.stringify(newBlock));
+        await db_blocks.saveBlock(newBlock);
+      } else {
+        transactions.push(transaction);
+        const blockmessage = "2-" + JSON.stringify(lastBlock);
+        await sendFileToAllNodes(blockmessage);
+        await db_blocks.saveBlock(lastBlock);
+      }
 
-    res.status(200).json({ success: true, transaction });
+      // Modificar el estado del sender a unblocked después de realizar la transacción
+      await db_accounts.modifyState(senderAddress, false);
+
+      res.status(200).json({ success: true, transaction });
+
+    }, 10000);
+
+
+
+    
   } catch (error) {
     console.error('Error processing transaction:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -298,17 +308,15 @@ class Node {
           } else if (values.toString().split("-")[0] == '0') {
             const newcontent = JSON.parse(values.toString().split("-")[1]);
             console.log(JSON.parse(await registerUser2(db_accounts, JSON.stringify(newcontent))));
+          } else if (values.toString().split("-")[0] == 'bloqued') {
+            const addr = values.toString().split("-")[1];
+            await db_accounts.modifyState(addr, true);
+          } else if (values.toString().split("-")[0] == 'unbloqued') {
+            const addr = values.toString().split("-")[1];
+            await db_accounts.modifyState(addr, false);
           }
   
-          if (socket && typeof socket.on === 'function') {
-            socket.on('close', () => {
-              // Código de manejo del evento close
-              this.removeNodeFromList();
-              console.log('La conexión se cerró.');
-            });
-          } else {
-            console.error('Socket does not have the expected methods.');
-          }
+          
         }
       });
   
@@ -419,8 +427,18 @@ async function sendFileToAllNodes(fileContent) {
 
 async function sendFileToNode(fileContent) {
   const nodes = fs.readFileSync('nodes.txt', 'utf-8').split('\n').filter(Boolean);
-  const nodeAddr = nodes[0]
-  const portdest = nodeAddr.toString().split("/")[4];
+
+  let nodeAddr = nodes[0]
+
+  let portdest = nodeAddr.toString().split("/")[4];
+
+  if(nodes[1] && fileContent.toString().split("_")[1] == portdest){
+    
+    nodeAddr = nodes[1]
+
+    portdest = nodeAddr.toString().split("/")[4];
+
+  }
 
   if(fileContent.toString().split("_")[0]=== "newconnection" && portdest != fileContent.toString().split("_")[1]){
     const transport = tcp()();
@@ -480,7 +498,9 @@ const registerUser2 = async (db_accounts, name) => {
 
 
 
-
+/*
+Que entre el primer registro del txt
+*/ 
 if( await db_blocks.getTotalBlocks() == 0 && port==9000) {
   const origin_user = await registerUser(db_accounts, "Bob");
   const message = "0-"+origin_user;
