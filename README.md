@@ -45,7 +45,7 @@ npm install
 Para utilizar el sistema se desarrolló un *API REST* en el script *Node.js*, que permite administrar el sistema. Por alcance de tiempo y complejidad, se debe instanciar obligatoriamente un nodo en el puerto 9000.
 
 ```bash
-node index.js [PORT]
+node Node.js [PORT]
 ```
 
 ### Solicitudes de la API
