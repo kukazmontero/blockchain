@@ -42,7 +42,7 @@ npm install
 
 ## Uso del proyecto
 ### Levantar Nodos
-Para utilizar el sistema se desarrolló un *API REST* en el script *Node.js*, que permite administrar el sistema. Por alcance de tiempo y complejidad, se debe instanciar el nodo de origen en el puerto 9000.
+Para utilizar el sistema se desarrolló un *API REST* en el script *Node.js*, que permite administrar el sistema. Por alcance de tiempo y complejidad, se debe instanciar obligatoriamente un nodo en el puerto 9000.
 
 ```bash
 node index.js [PORT]
