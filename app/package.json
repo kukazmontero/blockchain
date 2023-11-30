@@ -1,9 +1,9 @@
 {
-  "name": "",
+  "name": "Blockchain Node",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "type": "commonjs",
+  "type": "module",
   "license": "AGPL-version-3.0",
   "private": false,
   "engines": {
@@ -18,9 +18,7 @@
   "bugs": "",
   "keywords": [],
   "author": {
-    "name": "",
-    "email": "",
-    "url": ""
+    "name": "Gabriel González - Lukas Montero - Rodrigo Órdenes - Benjamín Tello"
   },
   "contributors": [],
   "scripts": {
@@ -28,13 +26,12 @@
     "test": ""
   },
   "dependencies": {
-    "crypto-js": "^4.2.0",
-    "ethers": "^5.7.2",
+    "@libp2p/tcp": "^8.0.13",
+    "@multiformats/multiaddr": "^12.1.10",
+    "it-all": "^3.0.4",
+    "it-pipe": "^3.0.1",
     "level": "^8.0.0",
-    "readline-sync": "^1.4.10"
-  },
-  "devDependencies": {
-    "@types/level": "^6.0.3",
-    "typescript": "^5.2.2"
+    "readline-sync": "^1.4.10",
+    "express":"^4.5.0"
   }
 }
